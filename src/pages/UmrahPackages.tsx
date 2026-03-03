@@ -6,7 +6,7 @@ import ScrollReveal from "@/components/animations/ScrollReveal";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
-import medinaMosque from "@/assets/medina-mosque.jpg";
+import masjidNabawi from "@/assets/masjid-nabawi.jpg";
 
 const UmrahPackages = () => {
   const [selectedPkg, setSelectedPkg] = useState<PackageType | null>(null);
@@ -17,7 +17,7 @@ const UmrahPackages = () => {
 
       {/* Hero Banner */}
       <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-        <img src={medinaMosque} alt="Umrah" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={masjidNabawi} alt="Masjid-e-Nabawi" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 gradient-hero" />
         <div className="relative z-10 text-center pt-16">
           <ScrollReveal>
