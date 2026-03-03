@@ -2,7 +2,7 @@ import { PackageType, formatPrice } from "@/data/packages";
 import { Button } from "@/components/ui/button";
 import { Clock, Star } from "lucide-react";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
-import medinaMosque from "@/assets/medina-mosque.jpg";
+import masjidNabawi from "@/assets/masjid-nabawi.jpg";
 
 interface PackageCardProps {
   pkg: PackageType;
@@ -10,7 +10,7 @@ interface PackageCardProps {
 }
 
 const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
-  const image = pkg.type === 'hajj' ? heroKaaba : medinaMosque;
+  const image = pkg.type === 'hajj' ? heroKaaba : masjidNabawi;
 
   return (
     <div className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-gold transition-all duration-500 flex flex-col">
