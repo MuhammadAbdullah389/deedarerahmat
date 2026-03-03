@@ -1,6 +1,7 @@
 import { PackageType, formatPrice } from "@/data/packages";
 import { Button } from "@/components/ui/button";
-import { Clock, Star } from "lucide-react";
+import { Clock, Star, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
 
@@ -13,61 +14,59 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
   const image = pkg.type === 'hajj' ? heroKaaba : masjidNabawi;
 
   return (
-    <div className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-gold transition-all duration-500 flex flex-col">
+    <motion.div
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.4 }}
+      className="group bg-card rounded-2xl overflow-hidden border border-border shimmer-hover hover:shadow-gold transition-all duration-500 flex flex-col"
+    >
       {/* Image */}
       <div className="relative h-52 overflow-hidden">
         <img src={image} alt={pkg.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         {pkg.featured && (
-          <div className="absolute top-4 right-4 gradient-gold px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold text-primary-foreground">
-            <Star className="w-3 h-3" /> Popular
+          <div className="absolute top-4 right-4 gradient-gold px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-semibold text-primary-foreground shadow-gold">
+            <Star className="w-3 h-3 fill-current" /> Popular
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/60 to-transparent h-20" />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent h-24" />
+        <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-primary-foreground/90">
+          <Clock className="w-3.5 h-3.5" />
+          <span className="text-xs font-medium">{pkg.duration}</span>
+        </div>
       </div>
 
       {/* Content */}
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="font-display text-xl font-bold text-foreground mb-2">{pkg.name}</h3>
-        
-        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-4">
-          <Clock className="w-4 h-4" />
-          <span>{pkg.duration}</span>
-        </div>
+        <h3 className="font-display text-xl font-bold text-foreground mb-4">{pkg.name}</h3>
 
         {/* Prices */}
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <p className="text-xs text-muted-foreground">Double</p>
-            <p className="text-sm font-semibold text-foreground">{formatPrice(pkg.prices.double)}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <p className="text-xs text-muted-foreground">Triple</p>
-            <p className="text-sm font-semibold text-foreground">{formatPrice(pkg.prices.triple)}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <p className="text-xs text-muted-foreground">Quad</p>
-            <p className="text-sm font-semibold text-foreground">{formatPrice(pkg.prices.quad)}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <p className="text-xs text-muted-foreground">Quint</p>
-            <p className="text-sm font-semibold text-foreground">{formatPrice(pkg.prices.quint)}</p>
-          </div>
+          {[
+            { label: "Double", price: pkg.prices.double },
+            { label: "Triple", price: pkg.prices.triple },
+            { label: "Quad", price: pkg.prices.quad },
+            { label: "Quint", price: pkg.prices.quint },
+          ].map((p) => (
+            <div key={p.label} className="bg-secondary rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{p.label}</p>
+              <p className="text-sm font-semibold text-foreground">{formatPrice(p.price)}</p>
+            </div>
+          ))}
         </div>
 
         {/* Hotels Preview */}
-        <div className="mb-4 flex-1">
+        <div className="mb-5 flex-1 space-y-1">
           {pkg.hotels.map((h) => (
             <p key={h.name} className="text-xs text-muted-foreground">
-              🏨 {h.name} – <span className="text-accent">{h.distance}</span>
+              🏨 {h.name} – <span className="text-accent font-medium">{h.distance}</span>
             </p>
           ))}
         </div>
 
-        <Button variant="gold" className="w-full" onClick={() => onViewDetails(pkg)}>
-          View Full Details
+        <Button variant="gold" className="w-full gap-2 shadow-gold group/btn" onClick={() => onViewDetails(pkg)}>
+          View Full Details <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
