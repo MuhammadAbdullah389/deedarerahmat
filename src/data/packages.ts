@@ -21,11 +21,12 @@ export const hajjPackages: PackageType[] = [
     id: 'hajj-economy',
     name: 'Economy Hajj Package',
     type: 'hajj',
-    duration: '21 Days',
-    prices: { double: 850000, triple: 750000, quad: 680000, quint: 620000 },
+    duration: '20 Days',
+    prices: { double: 2279000, triple: 2179000, quad: 2079000, quint: 1985000 },
     hotels: [
-      { name: 'Al Kiswah Towers', city: 'Makkah', distance: '800m from Haram' },
-      { name: 'Al Eiman Royal', city: 'Madinah', distance: '500m from Masjid Nabawi' },
+      { name: 'MovInPick-Hajar Tower', city: 'Makkah', distance: '400m from Haram' },
+      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
+      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
     ],
     services: ['Visa Processing', 'Return Air Ticket', 'Transport (AC Bus)', 'Meals (3 times)', 'Ziyarat Tours', 'Laundry Service'],
     inclusions: ['Ihram', 'Hajj Guide Book', 'Travel Bag', 'ID Card', '24/7 Support', 'Medical Aid'],
@@ -35,11 +36,12 @@ export const hajjPackages: PackageType[] = [
     id: 'hajj-standard',
     name: 'Standard Hajj Package',
     type: 'hajj',
-    duration: '25 Days',
-    prices: { double: 1100000, triple: 950000, quad: 850000, quint: 780000 },
+    duration: '20 Days',
+    prices: { double: 1895000, triple: 1795000, quad: 1695000, quint: 1595000 },
     hotels: [
-      { name: 'Pullman ZamZam', city: 'Makkah', distance: '200m from Haram' },
-      { name: 'Shaza Al Madina', city: 'Madinah', distance: '300m from Masjid Nabawi' },
+      { name: 'Anjum Hotel', city: 'Makkah', distance: '450m from Haram' },
+      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
+      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
     ],
     services: ['Visa Processing', 'Return Air Ticket (PIA/Saudi)', 'Private AC Transport', 'Buffet Meals (3 times)', 'Complete Ziyarat', 'Laundry & Ironing'],
     inclusions: ['Ihram', 'Hajj Training Sessions', 'Premium Travel Kit', 'ID Card', 'Dedicated Guide', 'Medical Insurance'],
@@ -51,10 +53,40 @@ export const hajjPackages: PackageType[] = [
     name: 'Premium Hajj Package',
     type: 'hajj',
     duration: '30 Days',
-    prices: { double: 1600000, triple: 1400000, quad: 1250000, quint: 1150000 },
+    prices: { double: 2179000, triple: 2079000, quad: 1979000, quint: 1879000 },
     hotels: [
-      { name: 'Hilton Suites Makkah', city: 'Makkah', distance: '50m from Haram' },
-      { name: 'The Oberoi Madina', city: 'Madinah', distance: '100m from Masjid Nabawi' },
+      { name: 'Anjum Hotel', city: 'Makkah', distance: '450m from Haram' },
+      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
+      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
+    ],
+    services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
+    inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
+    image: 'hajj',
+  },
+  {
+    id: 'hajj-short',
+    name: 'Concise Hajj Package',
+    type: 'hajj',
+    duration: '13/14 Days',
+    prices: { double: 1934000, triple: 1874000, quad: 1839000, quint: 1780000 },
+    hotels: [
+      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
+      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
+    ],
+    services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
+    inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
+    image: 'hajj',
+  },
+  {
+    id: 'hajj-platinium',
+    name: 'Platinium Hajj Package',
+    type: 'hajj',
+    duration: '17 Days',
+    prices: { double: 2765000, triple: 2640000, quad: 2565000, quint: 2465000 },
+    hotels: [
+      { name: 'Madina Oberoi', city: 'Madinah', distance: '150m from Masjid Nabawi' },
+      { name: 'Fairmont Makkah', city: 'Makkah', distance: '100m from Haram' },
+      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
     ],
     services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
     inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
@@ -64,24 +96,24 @@ export const hajjPackages: PackageType[] = [
 
 export const umrahPackages: PackageType[] = [
   {
-    id: 'umrah-economy',
-    name: 'Economy Umrah Package',
+    id: 'umrah-ramzan',
+    name: 'Ramzan Umrah Package',
     type: 'umrah',
-    duration: '10 Days',
-    prices: { double: 180000, triple: 155000, quad: 135000, quint: 120000 },
+    duration: '26 Days',
+    prices: { double: 535000, triple: 442000, quad: 399000, quint: 369000 },
     hotels: [
-      { name: 'Al Kiswah Towers', city: 'Makkah', distance: '800m from Haram' },
-      { name: 'Al Eiman Royal', city: 'Madinah', distance: '500m from Masjid Nabawi' },
+      { name: 'Land Premium', city: 'Makkah', distance: '1000m from Haram' },
+      { name: 'Mahad Al-Madina', city: 'Madinah', distance: '600m from Masjid Nabawi' },
     ],
     services: ['Visa Processing', 'Return Air Ticket', 'AC Transport', 'Breakfast & Dinner', 'Ziyarat Tour'],
     inclusions: ['Travel Bag', 'ID Card', 'Group Guide', 'Basic Medical Kit'],
     image: 'umrah',
   },
   {
-    id: 'umrah-standard',
+    id: 'umrah-ramazan',
     name: 'Standard Umrah Package',
     type: 'umrah',
-    duration: '14 Days',
+    duration: '21 Days',
     prices: { double: 280000, triple: 240000, quad: 210000, quint: 190000 },
     hotels: [
       { name: 'Swissotel Makkah', city: 'Makkah', distance: '300m from Haram' },
