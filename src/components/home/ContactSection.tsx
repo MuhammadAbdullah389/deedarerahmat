@@ -13,7 +13,6 @@ const contactItems = [
 const ContactSection = () => {
   return (
     <section className="py-24 gradient-emerald text-primary-foreground relative overflow-hidden">
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
       <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full border border-accent/10" />
       <div className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full border border-accent/10" />

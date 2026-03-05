@@ -9,7 +9,7 @@ import ScrollReveal from "@/components/animations/ScrollReveal";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
-import heroKaaba from "@/assets/hero-kaaba.jpg";
+import visaImage from "@/assets/visa-assistance.jpg";
 import { toast } from "sonner";
 
 const visaCountries = [
@@ -54,7 +54,7 @@ const VisaAssistance = () => {
 
       {/* Hero */}
       <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-        <img src={heroKaaba} alt="Visa" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={visaImage} alt="Visa Assistance" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 gradient-hero" />
         <div className="relative z-10 text-center pt-16">
           <ScrollReveal>
@@ -80,7 +80,7 @@ const VisaAssistance = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {visaRequirements.map((req, i) => (
               <ScrollReveal key={req.title} delay={i * 0.1}>
-                <div className="bg-card rounded-xl p-6 text-center border border-border hover:shadow-gold transition-all duration-500">
+                <div className="glass-card rounded-xl p-6 text-center hover:shadow-gold transition-all duration-500">
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full gradient-gold flex items-center justify-center">
                     <req.icon className="w-6 h-6 text-primary-foreground" />
                   </div>
@@ -106,7 +106,7 @@ const VisaAssistance = () => {
               <ScrollReveal key={i} delay={i * 0.05}>
                 <motion.div
                   whileHover={{ x: 5 }}
-                  className="bg-card rounded-lg p-4 border border-border flex items-center gap-3 text-foreground/80 text-sm"
+                  className="glass-card rounded-lg p-4 flex items-center gap-3 text-foreground/80 text-sm"
                 >
                   {f}
                 </motion.div>
@@ -128,73 +128,39 @@ const VisaAssistance = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <form onSubmit={handleSubmit} className="bg-card text-foreground rounded-xl p-8 shadow-lg space-y-5">
+            <form onSubmit={handleSubmit} className="glass-card rounded-xl p-8 shadow-lg space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Full Name *</label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your full name"
-                    required
-                  />
+                  <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Your full name" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Phone Number *</label>
-                  <Input
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+92 300 1234567"
-                    required
-                  />
+                  <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+92 300 1234567" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                  />
+                  <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="your@email.com" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Country *</label>
                   <Select value={formData.country} onValueChange={(v) => setFormData({ ...formData, country: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {visaCountries.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                    <SelectContent>{visaCountries.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Passport Number</label>
-                  <Input
-                    value={formData.passportNo}
-                    onChange={(e) => setFormData({ ...formData, passportNo: e.target.value })}
-                    placeholder="AB1234567"
-                  />
+                  <Input value={formData.passportNo} onChange={(e) => setFormData({ ...formData, passportNo: e.target.value })} placeholder="AB1234567" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Expected Travel Date</label>
-                  <Input
-                    type="date"
-                    value={formData.travelDate}
-                    onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })}
-                  />
+                  <Input type="date" value={formData.travelDate} onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })} />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">Additional Message</label>
-                <Textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="Any specific requirements or questions..."
-                  rows={4}
-                />
+                <Textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Any specific requirements or questions..." rows={4} />
               </div>
               <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base">
                 <Send className="w-5 h-5" /> Submit Visa Inquiry

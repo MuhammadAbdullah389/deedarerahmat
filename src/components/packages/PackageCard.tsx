@@ -17,9 +17,8 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
     <motion.div
       whileHover={{ y: -8 }}
       transition={{ duration: 0.4 }}
-      className="group bg-card rounded-2xl overflow-hidden border border-border shimmer-hover hover:shadow-gold transition-all duration-500 flex flex-col"
+      className="group glass-card rounded-2xl overflow-hidden shimmer-hover hover:shadow-gold transition-all duration-500 flex flex-col"
     >
-      {/* Image */}
       <div className="relative h-52 overflow-hidden">
         <img src={image} alt={pkg.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         {pkg.featured && (
@@ -34,11 +33,8 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-6 flex flex-col flex-1">
         <h3 className="font-display text-xl font-bold text-foreground mb-4">{pkg.name}</h3>
-
-        {/* Prices */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           {[
             { label: "Double", price: pkg.prices.double },
@@ -46,14 +42,12 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
             { label: "Quad", price: pkg.prices.quad },
             { label: "Quint", price: pkg.prices.quint },
           ].map((p) => (
-            <div key={p.label} className="bg-secondary rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
+            <div key={p.label} className="bg-secondary/50 backdrop-blur-sm rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{p.label}</p>
               <p className="text-sm font-semibold text-foreground">{formatPrice(p.price)}</p>
             </div>
           ))}
         </div>
-
-        {/* Hotels Preview */}
         <div className="mb-5 flex-1 space-y-1">
           {pkg.hotels.map((h) => (
             <p key={h.name} className="text-xs text-muted-foreground">
@@ -61,7 +55,6 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
             </p>
           ))}
         </div>
-
         <Button variant="gold" className="w-full gap-2 shadow-gold group/btn" onClick={() => onViewDetails(pkg)}>
           View Full Details <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </Button>

@@ -12,7 +12,6 @@ const features = [
 const WhyChooseUs = () => {
   return (
     <section className="py-24 bg-secondary islamic-pattern relative overflow-hidden">
-      {/* Decorative circles */}
       <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full border border-accent/10" />
       <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full border border-accent/10" />
 
@@ -20,9 +19,7 @@ const WhyChooseUs = () => {
         <ScrollReveal>
           <div className="text-center mb-16">
             <p className="text-accent font-medium tracking-widest uppercase text-sm mb-3">Why Choose Us</p>
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Your Trusted Travel Partner
-            </h2>
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">Your Trusted Travel Partner</h2>
             <div className="section-divider w-24 mx-auto" />
           </div>
         </ScrollReveal>
@@ -33,7 +30,7 @@ const WhyChooseUs = () => {
               <motion.div
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.3 }}
-                className="bg-card rounded-2xl p-8 text-center shadow-emerald hover:shadow-gold transition-all duration-500 group shimmer-hover border border-border"
+                className="glass-card rounded-2xl p-8 text-center hover:shadow-gold transition-all duration-500 group shimmer-hover"
               >
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-gold flex items-center justify-center group-hover:animate-pulse-glow transition-all shadow-gold">
                   <feature.icon className="w-8 h-8 text-primary-foreground" />

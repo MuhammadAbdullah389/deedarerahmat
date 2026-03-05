@@ -10,6 +10,8 @@ const navLinks = [
   { label: "Hajj Packages", path: "/hajj-packages" },
   { label: "Umrah Packages", path: "/umrah-packages" },
   { label: "Visa Assistance", path: "/visa-assistance" },
+  { label: "Testimonials", path: "/submit-testimonial" },
+  { label: "FAQs", path: "/faqs" },
 ];
 
 const Navbar = () => {
@@ -30,7 +32,7 @@ const Navbar = () => {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-primary/98 backdrop-blur-xl shadow-lg shadow-emerald-dark/20 border-b border-emerald-light/10"
+          ? "bg-card/95 backdrop-blur-xl shadow-lg shadow-foreground/5 border-b border-border"
           : "bg-primary/80 backdrop-blur-md border-b border-emerald-light/10"
       }`}
     >
@@ -38,13 +40,13 @@ const Navbar = () => {
         <Link to="/" className="flex items-center gap-3 group">
           <img src={logo} alt="Alhabib Travel & Tours" className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:scale-105" />
           <div className="hidden sm:block">
-            <h1 className="text-primary-foreground font-display text-lg font-bold leading-tight">Alhabib</h1>
-            <p className="text-gold-light text-[10px] tracking-[0.3em] uppercase">Travel & Tours</p>
+            <h1 className={`font-display text-lg font-bold leading-tight transition-colors duration-300 ${scrolled ? "text-foreground" : "text-primary-foreground"}`}>Alhabib</h1>
+            <p className={`text-[10px] tracking-[0.3em] uppercase transition-colors duration-300 ${scrolled ? "text-accent" : "text-gold-light"}`}>Travel & Tours</p>
           </div>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -52,7 +54,9 @@ const Navbar = () => {
               className={`relative text-sm font-medium transition-colors duration-300 py-1 ${
                 location.pathname === link.path
                   ? "text-accent"
-                  : "text-primary-foreground/80 hover:text-accent"
+                  : scrolled
+                    ? "text-foreground/70 hover:text-accent"
+                    : "text-primary-foreground/80 hover:text-accent"
               }`}
             >
               {link.label}
@@ -75,7 +79,7 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-primary-foreground p-2"
+          className={`md:hidden p-2 transition-colors ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
           aria-label="Toggle menu"
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -90,7 +94,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-primary/98 backdrop-blur-xl border-t border-emerald-light/10"
+            className={`md:hidden backdrop-blur-xl border-t ${scrolled ? "bg-card/98 border-border" : "bg-primary/98 border-emerald-light/10"}`}
           >
             <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
               {navLinks.map((link, i) => (
@@ -106,7 +110,9 @@ const Navbar = () => {
                     className={`block text-sm font-medium py-3 px-3 rounded-lg transition-all ${
                       location.pathname === link.path
                         ? "text-accent bg-accent/10"
-                        : "text-primary-foreground/80 hover:text-accent hover:bg-accent/5"
+                        : scrolled
+                          ? "text-foreground/70 hover:text-accent hover:bg-accent/5"
+                          : "text-primary-foreground/80 hover:text-accent hover:bg-accent/5"
                     }`}
                   >
                     {link.label}

@@ -7,15 +7,14 @@ import Index from "./pages/Index";
 import HajjPackages from "./pages/HajjPackages";
 import UmrahPackages from "./pages/UmrahPackages";
 import VisaAssistance from "./pages/VisaAssistance";
+import SubmitTestimonial from "./pages/SubmitTestimonial";
+import FAQs from "./pages/FAQs";
 import NotFound from "./pages/NotFound";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminPackages from "./pages/admin/AdminPackages";
 import AdminHotels from "./pages/admin/AdminHotels";
 import AdminBookings from "./pages/admin/AdminBookings";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
-import UserOverview from "./pages/user/UserOverview";
-import UserBookings from "./pages/user/UserBookings";
-import UserTestimonials from "./pages/user/UserTestimonials";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +29,8 @@ const App = () => (
           <Route path="/hajj-packages" element={<HajjPackages />} />
           <Route path="/umrah-packages" element={<UmrahPackages />} />
           <Route path="/visa-assistance" element={<VisaAssistance />} />
+          <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
+          <Route path="/faqs" element={<FAQs />} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminOverview />} />
@@ -37,11 +38,6 @@ const App = () => (
           <Route path="/admin/hotels" element={<AdminHotels />} />
           <Route path="/admin/bookings" element={<AdminBookings />} />
           <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-
-          {/* User Routes */}
-          <Route path="/dashboard" element={<UserOverview />} />
-          <Route path="/dashboard/bookings" element={<UserBookings />} />
-          <Route path="/dashboard/testimonials" element={<UserTestimonials />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

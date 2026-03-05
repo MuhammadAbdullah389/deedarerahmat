@@ -5,11 +5,12 @@ import { ArrowRight, Plane, Moon, FileText } from "lucide-react";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
+import visaImage from "@/assets/visa-assistance.jpg";
 
 const services = [
   { title: "Hajj Packages", desc: "Complete Hajj packages with 5-star accommodation, guided tours, and all-inclusive services for the journey of a lifetime.", image: heroKaaba, link: "/hajj-packages", icon: Moon },
   { title: "Umrah Packages", desc: "Affordable Umrah packages throughout the year including special Ramadan offerings for a blessed experience.", image: masjidNabawi, link: "/umrah-packages", icon: Plane },
-  { title: "Visa Assistance", desc: "Expert visa processing for Saudi Arabia, Turkey, Malaysia, and many more countries with hassle-free documentation.", image: heroKaaba, link: "/visa-assistance", icon: FileText },
+  { title: "Visa Assistance", desc: "Expert visa processing for Saudi Arabia, Turkey, Malaysia, and many more countries with hassle-free documentation.", image: visaImage, link: "/visa-assistance", icon: FileText },
 ];
 
 const ServicesPreview = () => {
@@ -30,7 +31,7 @@ const ServicesPreview = () => {
               <motion.div
                 whileHover={{ y: -8 }}
                 transition={{ duration: 0.4 }}
-                className="group rounded-2xl overflow-hidden bg-card border border-border shimmer-hover hover:shadow-gold transition-all duration-500"
+                className="group rounded-2xl overflow-hidden glass-card shimmer-hover hover:shadow-gold transition-all duration-500"
               >
                 <div className="h-56 overflow-hidden relative">
                   <img

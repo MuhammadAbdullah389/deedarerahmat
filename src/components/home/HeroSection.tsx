@@ -1,8 +1,17 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Phone, Star } from "lucide-react";
 import heroImage from "@/assets/hero-kaaba.jpg";
+import masjidNabawi from "@/assets/masjid-nabawi.jpg";
+import visaImage from "@/assets/visa-assistance.jpg";
+
+const heroSlides = [
+  { image: heroImage, alt: "Masjid al-Haram - Kaaba" },
+  { image: masjidNabawi, alt: "Masjid an-Nabawi - Medina" },
+  { image: visaImage, alt: "Visa & Passport Services" },
+];
 
 const floatingStars = [
   { top: "15%", left: "10%", delay: 0, size: 3 },
@@ -16,16 +25,34 @@ const floatingStars = [
 ];
 
 const HeroSection = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image with Ken Burns */}
-      <motion.div
-        className="absolute inset-0"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      >
-        <img src={heroImage} alt="Masjid al-Haram" className="w-full h-full object-cover" />
-      </motion.div>
+      {/* Background Image Slideshow */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSlide}
+          className="absolute inset-0"
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        >
+          <img
+            src={heroSlides[currentSlide].image}
+            alt={heroSlides[currentSlide].alt}
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+      </AnimatePresence>
       <div className="absolute inset-0 gradient-hero" />
 
       {/* Floating star particles */}
@@ -100,12 +127,31 @@ const HeroSection = () => {
           </a>
         </motion.div>
 
+        {/* Slide indicators */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="mt-10 flex items-center justify-center gap-2"
+        >
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                currentSlide === i ? "w-8 bg-accent" : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
+              }`}
+              aria-label={`Go to slide ${i + 1}`}
+            />
+          ))}
+        </motion.div>
+
         {/* Trust badge */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.2 }}
-          className="mt-14 flex items-center justify-center gap-6 flex-wrap"
+          className="mt-8 flex items-center justify-center gap-6 flex-wrap"
         >
           {["Licensed & Approved", "10+ Years Experience", "1000+ Happy Pilgrims"].map((badge) => (
             <span key={badge} className="glass-dark px-4 py-2 rounded-full text-xs text-primary-foreground/80 font-medium tracking-wide">
