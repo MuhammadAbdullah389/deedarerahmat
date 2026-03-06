@@ -3,7 +3,6 @@ import {
   Package,
   Hotel,
   ClipboardList,
-  MessageSquare,
   ArrowLeft,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -25,7 +24,6 @@ const adminItems = [
   { title: "Packages", url: "/admin/packages", icon: Package },
   { title: "Hotels", url: "/admin/hotels", icon: Hotel },
   { title: "Bookings", url: "/admin/bookings", icon: ClipboardList },
-  { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquare },
 ];
 
 export function AdminSidebar() {

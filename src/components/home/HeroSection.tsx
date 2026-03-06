@@ -5,23 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Phone, Star } from "lucide-react";
 import heroImage from "@/assets/hero-kaaba.jpg";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
-import visaImage from "@/assets/visa-assistance.jpg";
+import kaabaNight from "@/assets/kaaba-night.jpg";
+import haramInterior from "@/assets/haram-interior.jpg";
+import visaTravel from "@/assets/visa-travel.jpg";
+import medinaImage from "@/assets/medina-panorama.jpg";
 
 const heroSlides = [
   { image: heroImage, alt: "Masjid al-Haram - Kaaba" },
-  { image: masjidNabawi, alt: "Masjid an-Nabawi - Medina" },
-  { image: visaImage, alt: "Visa & Passport Services" },
+  { image: kaabaNight, alt: "Kaaba at Night" },
+  { image: masjidNabawi, alt: "Masjid an-Nabawi" },
+  { image: medinaImage, alt: "Medina Panorama" },
+  { image: haramInterior, alt: "Inside the Grand Mosque" },
+  { image: visaTravel, alt: "Visa & Travel Services" },
 ];
 
 const floatingStars = [
-  { top: "15%", left: "10%", delay: 0, size: 3 },
-  { top: "25%", left: "85%", delay: 1.2, size: 4 },
+  { top: "20%", left: "10%", delay: 0, size: 3 },
+  { top: "30%", left: "85%", delay: 1.2, size: 4 },
   { top: "60%", left: "5%", delay: 0.6, size: 3 },
   { top: "70%", left: "90%", delay: 2, size: 5 },
-  { top: "40%", left: "15%", delay: 1.5, size: 3 },
-  { top: "20%", left: "70%", delay: 0.8, size: 4 },
-  { top: "80%", left: "75%", delay: 1.8, size: 3 },
-  { top: "35%", left: "92%", delay: 0.3, size: 4 },
+  { top: "45%", left: "15%", delay: 1.5, size: 3 },
+  { top: "25%", left: "70%", delay: 0.8, size: 4 },
 ];
 
 const HeroSection = () => {
@@ -30,21 +34,21 @@ const HeroSection = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 6000);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image Slideshow */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         <motion.div
           key={currentSlide}
           className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
         >
           <img
             src={heroSlides[currentSlide].image}
@@ -66,11 +70,8 @@ const HeroSection = () => {
         />
       ))}
 
-      {/* Decorative top border */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[200px] h-[1px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-40" />
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-20">
+      {/* Content - added pt-28 for nav clearance */}
+      <div className="relative z-10 container mx-auto px-4 text-center pt-28 md:pt-32">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -101,7 +102,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-primary-foreground/80 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          Trusted Hajj & Umrah packages from Narowal. Experience a spiritually fulfilling pilgrimage with our expert guidance and premium services.
+          Trusted Hajj & Umrah packages from Narowal. Experience a spiritually fulfilling pilgrimage with our expert guidance and premium services since 2010.
         </motion.p>
 
         <motion.div
@@ -120,7 +121,7 @@ const HeroSection = () => {
               View Umrah Packages
             </Button>
           </Link>
-          <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
             <Button variant="whatsapp" size="lg" className="text-base px-8 gap-2">
               <Phone className="w-5 h-5" /> WhatsApp Us
             </Button>
@@ -153,7 +154,7 @@ const HeroSection = () => {
           transition={{ duration: 1, delay: 1.2 }}
           className="mt-8 flex items-center justify-center gap-6 flex-wrap"
         >
-          {["Licensed & Approved", "10+ Years Experience", "1000+ Happy Pilgrims"].map((badge) => (
+          {["Licensed & Approved", "Since 2010", "1000+ Happy Pilgrims"].map((badge) => (
             <span key={badge} className="glass-dark px-4 py-2 rounded-full text-xs text-primary-foreground/80 font-medium tracking-wide">
               ✦ {badge}
             </span>

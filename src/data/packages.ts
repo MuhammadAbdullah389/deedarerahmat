@@ -1,157 +1,234 @@
+export interface HotelInfo {
+  name: string;
+  city: string;
+  distance: string;
+}
+
+export interface ItineraryItem {
+  label: string;
+  duration?: string;
+  dates: string;
+  islamicDate: string;
+}
+
 export interface PackageType {
   id: string;
   name: string;
   type: 'hajj' | 'umrah';
   duration: string;
   prices: {
-    double: number;
-    triple: number;
-    quad: number;
-    quint: number;
+    double?: number;
+    triple?: number;
+    quad?: number;
+    quint?: number;
   };
-  hotels: { name: string; city: string; distance: string }[];
+  hotels: HotelInfo[];
   services: string[];
   inclusions: string[];
   image: string;
   featured?: boolean;
+  maktab?: string;
+  itinerary?: ItineraryItem[];
+  flightInfo?: { route: string; date: string; flight?: string; departure?: string; arrival?: string };
+  returnFlightInfo?: { route: string; date: string; flight?: string; departure?: string; arrival?: string };
+  packageDetails?: string[];
+  requirements?: string[];
+  notes?: string[];
+  overseasDiscount?: string;
+  roomUpgrades?: { type: string; extra: string }[];
+  additionalPrices?: { label: string; price: number }[];
 }
+
+// ── HAJJ PACKAGES ──
+
+const hajjBase = {
+  type: 'hajj' as const,
+  duration: '20 Days (23 May – 11 June)',
+  flightInfo: { route: 'ISB → MED', date: '23 May (25 Zil-Qadah 1446 H)' },
+  returnFlightInfo: { route: 'JED → ISB', date: '10/11 June (14/15 Zil-Hajj 1446 H)' },
+  itinerary: [
+    { label: 'Flight', dates: '23 May', islamicDate: '25 ZQ 1446 H', duration: 'ISB → MED' },
+    { label: 'Madina Stay', dates: '23 May – 28 May', islamicDate: '25 ZQ – 1 ZH', duration: '5 Nights' },
+    { label: 'Makkah Stay', dates: '28 May – 31 May', islamicDate: '1 ZH – 4 ZH', duration: '3 Nights' },
+    { label: 'Aziziya Stay', dates: '31 May – 3/4 June', islamicDate: '4 ZH – 7/8 ZH' },
+    { label: 'Hajj Days', dates: '3/4 June – 8 June', islamicDate: '7/8 ZH – 12 ZH', duration: '5 Days' },
+    { label: 'Return to Aziziya', dates: '8 June – 10/11 June', islamicDate: '12 ZH – 14/15 ZH' },
+    { label: 'Departure to Jeddah', dates: '10/11 June', islamicDate: '14/15 ZH' },
+  ],
+  services: [
+    'Visa Processing',
+    'Return Air Ticket (ISB → MED, JED → ISB)',
+    'AC Transport throughout',
+    '3-time daily buffet meals in Aziziya (double dish)',
+    'Complete guided Ziarat in Madinah',
+    'Horooghy guided journey by Islamic scholars',
+  ],
+  inclusions: [
+    'Ihram',
+    'Hajj Guide Book',
+    'Travel Bag',
+    'ID Card',
+    '24/7 Support',
+    'Medical Aid',
+    'Training Sessions: Orientation before Hajj',
+    'Accommodation in Aziziya on gender sharing basis',
+  ],
+  packageDetails: [
+    'Aziziya building located near Mina',
+    '3-time daily buffet meals in Aziziya (double dish)',
+    'Accommodation in Aziziya on gender sharing basis',
+    'Horooghy guided journey organized by Islamic scholars',
+    'Complete guided Ziarat in Madinah included',
+    'Package includes air ticket',
+  ],
+  roomUpgrades: [
+    { type: 'Double Bed Room', extra: 'Rs. 200,000 per head extra' },
+    { type: 'Triple Bed Room', extra: 'Rs. 150,000 per head extra' },
+    { type: 'Quad Room', extra: 'No extra charges' },
+  ],
+  overseasDiscount: 'Less Rs. 300,000 for overseas Hujjaj (additional ticket cost adjustment)',
+  requirements: [
+    'Pakistani machine-readable passport valid until Dec 06, 2025',
+    'Valid NADRA CNIC / B-Form',
+    'Provide contact details and emergency contact',
+    'Two photographs (4×3 cm) with white background',
+    'Specify blood group',
+    'Biometric confirmation & medical certificate required',
+  ],
+  notes: ['Qurbani is NOT included in the above packages'],
+  image: 'hajj',
+};
 
 export const hajjPackages: PackageType[] = [
   {
-    id: 'hajj-economy',
-    name: 'Economy Hajj Package',
-    type: 'hajj',
-    duration: '20 Days',
-    prices: { double: 2279000, triple: 2179000, quad: 2079000, quint: 1985000 },
+    ...hajjBase,
+    id: 'hajj-maktab-a',
+    name: 'Hajj Package – Maktab A',
+    maktab: 'A',
+    prices: { quad: 1979000, triple: 2129000, double: 2179000 },
     hotels: [
       { name: 'MovInPick-Hajar Tower', city: 'Makkah', distance: '400m from Haram' },
       { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
-      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
+      { name: 'Aziziya Building (Near Mina)', city: 'Aziziya', distance: '2–4 km from Masjid al-Haram' },
     ],
-    services: ['Visa Processing', 'Return Air Ticket', 'Transport (AC Bus)', 'Meals (3 times)', 'Ziyarat Tours', 'Laundry Service'],
-    inclusions: ['Ihram', 'Hajj Guide Book', 'Travel Bag', 'ID Card', '24/7 Support', 'Medical Aid'],
-    image: 'hajj',
   },
   {
-    id: 'hajj-standard',
-    name: 'Standard Hajj Package',
-    type: 'hajj',
-    duration: '20 Days',
-    prices: { double: 1895000, triple: 1795000, quad: 1695000, quint: 1595000 },
+    ...hajjBase,
+    id: 'hajj-maktab-b',
+    name: 'Hajj Package – Maktab B',
+    maktab: 'B',
+    prices: { quad: 2079000, triple: 2229000, double: 2279000 },
     hotels: [
       { name: 'Anjum Hotel', city: 'Makkah', distance: '450m from Haram' },
       { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
-      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
+      { name: 'Aziziya Building (Near Mina)', city: 'Aziziya', distance: '2–4 km from Masjid al-Haram' },
     ],
-    services: ['Visa Processing', 'Return Air Ticket (PIA/Saudi)', 'Private AC Transport', 'Buffet Meals (3 times)', 'Complete Ziyarat', 'Laundry & Ironing'],
-    inclusions: ['Ihram', 'Hajj Training Sessions', 'Premium Travel Kit', 'ID Card', 'Dedicated Guide', 'Medical Insurance'],
-    image: 'hajj',
     featured: true,
   },
   {
-    id: 'hajj-premium',
-    name: 'Premium Hajj Package',
-    type: 'hajj',
-    duration: '30 Days',
-    prices: { double: 2179000, triple: 2079000, quad: 1979000, quint: 1879000 },
+    ...hajjBase,
+    id: 'hajj-maktab-c',
+    name: 'Hajj Package – Maktab C',
+    maktab: 'C',
+    prices: { quad: 2265000, triple: 2415000, double: 2465000 },
     hotels: [
-      { name: 'Anjum Hotel', city: 'Makkah', distance: '450m from Haram' },
-      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
-      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
-    ],
-    services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
-    inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
-    image: 'hajj',
-  },
-  {
-    id: 'hajj-short',
-    name: 'Concise Hajj Package',
-    type: 'hajj',
-    duration: '13/14 Days',
-    prices: { double: 1934000, triple: 1874000, quad: 1839000, quint: 1780000 },
-    hotels: [
-      { name: 'Grand Plaza Badr Al-Maqam', city: 'Madinah', distance: '600m from Masjid Nabawi' },
-      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
-    ],
-    services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
-    inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
-    image: 'hajj',
-  },
-  {
-    id: 'hajj-platinium',
-    name: 'Platinium Hajj Package',
-    type: 'hajj',
-    duration: '17 Days',
-    prices: { double: 2765000, triple: 2640000, quad: 2565000, quint: 2465000 },
-    hotels: [
-      { name: 'Madina Oberoi', city: 'Madinah', distance: '150m from Masjid Nabawi' },
       { name: 'Fairmont Makkah', city: 'Makkah', distance: '100m from Haram' },
-      { name: 'Behind Souq Salam', city: 'Makkah (Aziziya)', distance: '2–4 km from Masjid al-Haram' }
+      { name: 'Madina Oberoi', city: 'Madinah', distance: '150m from Masjid Nabawi' },
+      { name: 'Aziziya Building (Near Mina)', city: 'Aziziya', distance: '2–4 km from Masjid al-Haram' },
     ],
-    services: ['VIP Visa Processing', 'Business Class Air Ticket', 'Private Luxury Transport', 'Premium Dining', 'Private Ziyarat Tours', 'Personal Assistant'],
-    inclusions: ['Premium Ihram Set', 'Private Hajj Training', 'Luxury Travel Kit', 'Gold ID Card', 'Personal Hajj Guide', 'Comprehensive Medical Coverage'],
-    image: 'hajj',
+  },
+  {
+    ...hajjBase,
+    id: 'hajj-maktab-d',
+    name: 'Hajj Package – Maktab D',
+    maktab: 'D',
+    prices: { quad: 2565000, triple: 2715000, double: 2765000 },
+    hotels: [
+      { name: 'Fairmont Makkah (Premium)', city: 'Makkah', distance: '50m from Haram' },
+      { name: 'The Oberoi Madina', city: 'Madinah', distance: '100m from Masjid Nabawi' },
+      { name: 'Aziziya Building (Near Mina)', city: 'Aziziya', distance: '2–4 km from Masjid al-Haram' },
+    ],
   },
 ];
 
+// ── UMRAH PACKAGES ──
+
+const umrahBase = {
+  type: 'umrah' as const,
+  duration: '21 Days',
+  flightInfo: { route: 'ISB → JED', date: '11 Jan', flight: 'SV 723', departure: '10:40', arrival: '14:35' },
+  returnFlightInfo: { route: 'JED → ISB', date: '31 Jan', flight: 'SV 726', departure: '17:40', arrival: '00:20' },
+  services: [
+    'Visa Processing',
+    'Return Air Ticket (Saudia Airlines)',
+    'AC Transport',
+    'Ziarat in Makkah & Madinah included',
+    'Hotel Accommodation',
+    'Group Guide',
+  ],
+  inclusions: [
+    'Travel Bag',
+    'ID Card',
+    'Group Guide',
+    'Basic Medical Kit',
+    'Nights Breakup: 6 – 8 – 6',
+  ],
+  requirements: [
+    'Valid Pakistani passport',
+    'Valid NADRA CNIC',
+    'Two photographs (4×3 cm) with white background',
+    'Vaccination certificate',
+  ],
+  image: 'umrah',
+};
+
 export const umrahPackages: PackageType[] = [
   {
-    id: 'umrah-ramzan',
-    name: 'Ramzan Umrah Package',
-    type: 'umrah',
-    duration: '26 Days',
-    prices: { double: 535000, triple: 442000, quad: 399000, quint: 369000 },
+    ...umrahBase,
+    id: 'umrah-pkg-1',
+    name: 'Umrah Package 1 – Economy',
+    prices: { quint: 294000, quad: 309000, triple: 335000, double: 387000 },
     hotels: [
-      { name: 'Land Premium', city: 'Makkah', distance: '1000m from Haram' },
-      { name: 'Mahad Al-Madina', city: 'Madinah', distance: '600m from Masjid Nabawi' },
+      { name: 'Land Premium', city: 'Makkah', distance: '1000 meters from Haram' },
+      { name: 'Mahad Al Madina', city: 'Madinah', distance: '600–700 meters from Masjid Nabawi' },
     ],
-    services: ['Visa Processing', 'Return Air Ticket', 'AC Transport', 'Breakfast & Dinner', 'Ziyarat Tour'],
-    inclusions: ['Travel Bag', 'ID Card', 'Group Guide', 'Basic Medical Kit'],
-    image: 'umrah',
   },
   {
-    id: 'umrah-ramazan',
-    name: 'Standard Umrah Package',
-    type: 'umrah',
-    duration: '21 Days',
-    prices: { double: 280000, triple: 240000, quad: 210000, quint: 190000 },
+    ...umrahBase,
+    id: 'umrah-pkg-2',
+    name: 'Umrah Package 2 – Standard',
+    prices: { quint: 309000, quad: 329000, triple: 362000, double: 428000 },
     hotels: [
-      { name: 'Swissotel Makkah', city: 'Makkah', distance: '300m from Haram' },
-      { name: 'Millennium Madinah', city: 'Madinah', distance: '200m from Masjid Nabawi' },
+      { name: 'Hijra Al Khair', city: 'Makkah', distance: '700–800 meters from Haram' },
+      { name: 'Mahad Al Madina', city: 'Madinah', distance: '600–700 meters from Masjid Nabawi' },
     ],
-    services: ['Visa Processing', 'Return Air Ticket', 'Private Transport', 'Full Board Meals', 'Complete Ziyarat', 'Laundry'],
-    inclusions: ['Premium Travel Bag', 'ID Card', 'Dedicated Guide', 'Medical Insurance', 'Prayer Mat'],
-    image: 'umrah',
     featured: true,
   },
   {
-    id: 'umrah-premium',
-    name: 'Premium Umrah Package',
-    type: 'umrah',
-    duration: '15 Days',
-    prices: { double: 450000, triple: 380000, quad: 330000, quint: 300000 },
+    ...umrahBase,
+    id: 'umrah-pkg-3',
+    name: 'Umrah Package 3 – Premium',
+    prices: { quint: 317000, quad: 339000, triple: 373000, double: 446000 },
     hotels: [
-      { name: 'Raffles Makkah Palace', city: 'Makkah', distance: '50m from Haram' },
-      { name: 'The Oberoi Madina', city: 'Madinah', distance: '100m from Masjid Nabawi' },
+      { name: 'Mather Al Jawar', city: 'Makkah', distance: '500 meters from Haram' },
+      { name: 'Mahad Al Madina', city: 'Madinah', distance: '600–700 meters from Masjid Nabawi' },
     ],
-    services: ['VIP Visa Processing', 'Business Class Ticket', 'Private Luxury Car', 'Fine Dining', 'Private Ziyarat', 'Concierge Service'],
-    inclusions: ['Luxury Kit', 'Gold ID Card', 'Personal Guide', 'Full Medical Coverage', 'Premium Prayer Set'],
-    image: 'umrah',
   },
   {
-    id: 'umrah-ramadan',
-    name: 'Ramadan Special Umrah',
-    type: 'umrah',
-    duration: '15 Days',
-    prices: { double: 350000, triple: 300000, quad: 265000, quint: 240000 },
+    ...umrahBase,
+    id: 'umrah-pkg-4',
+    name: 'Umrah Package 4 – Platinum',
+    prices: { quint: 349000, quad: 379000, triple: 426000, double: 526000 },
     hotels: [
-      { name: 'Makkah Towers', city: 'Makkah', distance: '400m from Haram' },
-      { name: 'Anwar Al Madinah', city: 'Madinah', distance: '350m from Masjid Nabawi' },
+      { name: 'Mather Al Jawar', city: 'Makkah', distance: '500 meters from Haram' },
+      { name: 'Rama Al Madina', city: 'Madinah', distance: '100 meters from Masjid Nabawi' },
     ],
-    services: ['Visa Processing', 'Return Air Ticket', 'AC Transport', 'Iftar & Suhoor', 'Ziyarat', 'Taraweeh Arrangement'],
-    inclusions: ['Travel Kit', 'Ramadan Guide', 'ID Card', 'Group Guide', 'Medical Aid'],
-    image: 'umrah',
   },
+];
+
+export const umrahAdditionalPrices = [
+  { label: 'Child Without Bed', price: 199000 },
+  { label: 'Infant', price: 79000 },
 ];
 
 export const testimonials = [

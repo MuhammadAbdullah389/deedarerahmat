@@ -15,7 +15,7 @@ const Footer = () => {
           <div>
             <img src={logo} alt="Alhabib Travel" className="h-16 w-auto mb-4" />
             <p className="text-primary-foreground/60 text-sm leading-relaxed mb-4">
-              Your trusted partner for Hajj, Umrah, and visa services. Serving pilgrims from Narowal and across Pakistan with dedication and care.
+              Your trusted partner for Hajj, Umrah, and visa services since 2010. Serving pilgrims from Narowal and across Pakistan with dedication and care.
             </p>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -33,6 +33,8 @@ const Footer = () => {
                 { label: "Hajj Packages", path: "/hajj-packages" },
                 { label: "Umrah Packages", path: "/umrah-packages" },
                 { label: "Visa Assistance", path: "/visa-assistance" },
+                { label: "About Us", path: "/about-us" },
+                { label: "Contact Us", path: "/contact-us" },
                 { label: "Submit Testimonial", path: "/submit-testimonial" },
                 { label: "FAQs", path: "/faqs" },
               ].map((link) => (

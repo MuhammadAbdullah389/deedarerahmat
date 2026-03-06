@@ -10,6 +10,8 @@ const navLinks = [
   { label: "Hajj Packages", path: "/hajj-packages" },
   { label: "Umrah Packages", path: "/umrah-packages" },
   { label: "Visa Assistance", path: "/visa-assistance" },
+  { label: "About Us", path: "/about-us" },
+  { label: "Contact Us", path: "/contact-us" },
   { label: "Testimonials", path: "/submit-testimonial" },
   { label: "FAQs", path: "/faqs" },
 ];
@@ -46,7 +48,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-5">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -55,8 +57,8 @@ const Navbar = () => {
                 location.pathname === link.path
                   ? "text-accent"
                   : scrolled
-                    ? "text-foreground/70 hover:text-accent"
-                    : "text-primary-foreground/80 hover:text-accent"
+                    ? "text-foreground hover:text-accent"
+                    : "text-primary-foreground hover:text-accent"
               }`}
             >
               {link.label}
@@ -69,9 +71,9 @@ const Navbar = () => {
               )}
             </Link>
           ))}
-          <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
             <Button variant="gold" size="sm" className="gap-2 shadow-gold">
-              <Phone className="w-4 h-4" /> Contact Us
+              <Phone className="w-4 h-4" /> WhatsApp
             </Button>
           </a>
         </div>
@@ -79,7 +81,7 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`md:hidden p-2 transition-colors ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
+          className={`lg:hidden p-2 transition-colors ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
           aria-label="Toggle menu"
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -94,7 +96,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className={`md:hidden backdrop-blur-xl border-t ${scrolled ? "bg-card/98 border-border" : "bg-primary/98 border-emerald-light/10"}`}
+            className={`lg:hidden backdrop-blur-xl border-t ${scrolled ? "bg-card/98 border-border" : "bg-primary/98 border-emerald-light/10"}`}
           >
             <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
               {navLinks.map((link, i) => (
@@ -111,17 +113,17 @@ const Navbar = () => {
                       location.pathname === link.path
                         ? "text-accent bg-accent/10"
                         : scrolled
-                          ? "text-foreground/70 hover:text-accent hover:bg-accent/5"
-                          : "text-primary-foreground/80 hover:text-accent hover:bg-accent/5"
+                          ? "text-foreground hover:text-accent hover:bg-accent/5"
+                          : "text-primary-foreground hover:text-accent hover:bg-accent/5"
                     }`}
                   >
                     {link.label}
                   </Link>
                 </motion.div>
               ))}
-              <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
                 <Button variant="gold" className="w-full gap-2 mt-3 shadow-gold">
-                  <Phone className="w-4 h-4" /> Contact Us
+                  <Phone className="w-4 h-4" /> WhatsApp Us
                 </Button>
               </a>
             </div>

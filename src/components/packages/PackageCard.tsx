@@ -12,6 +12,7 @@ interface PackageCardProps {
 
 const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
   const image = pkg.type === 'hajj' ? heroKaaba : masjidNabawi;
+  const priceEntries = Object.entries(pkg.prices).filter(([, v]) => v !== undefined);
 
   return (
     <motion.div
@@ -26,6 +27,11 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
             <Star className="w-3 h-3 fill-current" /> Popular
           </div>
         )}
+        {pkg.maktab && (
+          <div className="absolute top-4 left-4 bg-accent/90 text-primary-foreground px-3 py-1.5 rounded-full text-xs font-bold">
+            Maktab {pkg.maktab}
+          </div>
+        )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent h-24" />
         <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-primary-foreground/90">
           <Clock className="w-3.5 h-3.5" />
@@ -35,16 +41,11 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
 
       <div className="p-6 flex flex-col flex-1">
         <h3 className="font-display text-xl font-bold text-foreground mb-4">{pkg.name}</h3>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {[
-            { label: "Double", price: pkg.prices.double },
-            { label: "Triple", price: pkg.prices.triple },
-            { label: "Quad", price: pkg.prices.quad },
-            { label: "Quint", price: pkg.prices.quint },
-          ].map((p) => (
-            <div key={p.label} className="bg-secondary/50 backdrop-blur-sm rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{p.label}</p>
-              <p className="text-sm font-semibold text-foreground">{formatPrice(p.price)}</p>
+        <div className={`grid grid-cols-${Math.min(priceEntries.length, 3)} gap-2 mb-4`}>
+          {priceEntries.map(([label, price]) => (
+            <div key={label} className="bg-secondary/50 backdrop-blur-sm rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+              <p className="text-sm font-semibold text-foreground">{formatPrice(price!)}</p>
             </div>
           ))}
         </div>
