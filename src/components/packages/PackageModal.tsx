@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { PackageType, formatPrice } from "@/data/packages";
+import { PackageType, formatPrice, formatPriceUSD } from "@/data/packages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Building, Star, Phone, Plane, Calendar, AlertTriangle, FileText } from "lucide-react";
+import { Check, Clock, Building, Star, Phone, Plane, Calendar, AlertTriangle, FileText, DollarSign } from "lucide-react";
 import HajjRegistrationForm from "@/components/forms/HajjRegistrationForm";
 import UmrahRegistrationForm from "@/components/forms/UmrahRegistrationForm";
 
@@ -37,12 +37,13 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
   }
 
   const priceEntries = Object.entries(pkg.prices).filter(([, v]) => v !== undefined);
+  const priceUSDEntries = pkg.pricesUSD ? Object.entries(pkg.pricesUSD).filter(([, v]) => v !== undefined) : [];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-foreground flex items-center gap-3">
+          <DialogTitle className="font-display text-2xl text-foreground flex items-center gap-3 flex-wrap">
             {pkg.name}
             {pkg.featured && (
               <span className="gradient-gold px-2 py-0.5 rounded-full text-xs text-primary-foreground flex items-center gap-1">
@@ -64,25 +65,58 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
               <Clock className="w-5 h-5 text-accent" />
               <span className="font-medium">{pkg.duration}</span>
             </div>
+            {pkg.nightsBreakup && (
+              <span className="text-sm bg-secondary px-2 py-1 rounded">Nights: {pkg.nightsBreakup}</span>
+            )}
             {pkg.flightInfo && (
               <div className="flex items-center gap-2">
                 <Plane className="w-5 h-5 text-accent" />
                 <span className="text-sm">{pkg.flightInfo.route} • {pkg.flightInfo.date}</span>
+                {pkg.flightInfo.flight && <span className="text-xs text-accent font-medium">({pkg.flightInfo.flight})</span>}
               </div>
             )}
           </div>
 
           {/* Pricing Table */}
           <div>
-            <h4 className="font-display text-lg font-bold text-foreground mb-3">Pricing (Per Person)</h4>
-            <div className={`grid grid-cols-${priceEntries.length} gap-3`}>
-              {priceEntries.map(([type, price]) => (
-                <div key={type} className="bg-secondary rounded-lg p-3 text-center border border-border">
-                  <p className="text-xs text-muted-foreground capitalize mb-1">{type} Sharing</p>
-                  <p className="text-base font-bold text-accent">{formatPrice(price!)}</p>
-                </div>
-              ))}
+            <h4 className="font-display text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-accent" /> Pricing (Per Person)
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border border-border rounded-lg overflow-hidden">
+                <thead>
+                  <tr className="bg-secondary">
+                    <th className="text-left p-3 text-muted-foreground font-medium">Room Type</th>
+                    <th className="text-right p-3 text-muted-foreground font-medium">PKR</th>
+                    {priceUSDEntries.length > 0 && <th className="text-right p-3 text-muted-foreground font-medium">USD</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {priceEntries.map(([type, price], i) => (
+                    <tr key={type} className={i % 2 === 0 ? 'bg-background' : 'bg-secondary/30'}>
+                      <td className="p-3 capitalize font-medium text-foreground">{type} Sharing</td>
+                      <td className="p-3 text-right font-bold text-accent">{formatPrice(price!)}</td>
+                      {priceUSDEntries.length > 0 && (
+                        <td className="p-3 text-right text-muted-foreground">
+                          {pkg.pricesUSD?.[type as keyof typeof pkg.pricesUSD] ? formatPriceUSD(pkg.pricesUSD[type as keyof typeof pkg.pricesUSD]!) : '–'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+            {/* Additional Prices (Umrah) */}
+            {pkg.additionalPrices && (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {pkg.additionalPrices.map((ap) => (
+                  <div key={ap.label} className="bg-secondary/50 rounded-lg px-3 py-2 border border-border/50 text-sm">
+                    <span className="text-muted-foreground">{ap.label}:</span>{' '}
+                    <span className="font-semibold text-foreground">{formatPrice(ap.price)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Room Upgrades (Hajj) */}

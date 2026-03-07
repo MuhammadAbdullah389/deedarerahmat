@@ -1,6 +1,6 @@
 import { PackageType, formatPrice } from "@/data/packages";
 import { Button } from "@/components/ui/button";
-import { Clock, Star, ArrowRight } from "lucide-react";
+import { Clock, Star, ArrowRight, Plane } from "lucide-react";
 import { motion } from "framer-motion";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
@@ -13,6 +13,7 @@ interface PackageCardProps {
 const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
   const image = pkg.type === 'hajj' ? heroKaaba : masjidNabawi;
   const priceEntries = Object.entries(pkg.prices).filter(([, v]) => v !== undefined);
+  const lowestPrice = Math.min(...priceEntries.map(([, v]) => v!));
 
   return (
     <motion.div
@@ -33,24 +34,34 @@ const PackageCard = ({ pkg, onViewDetails }: PackageCardProps) => {
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent h-24" />
-        <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-primary-foreground/90">
-          <Clock className="w-3.5 h-3.5" />
-          <span className="text-xs font-medium">{pkg.duration}</span>
+        <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-primary-foreground/90">
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium">{pkg.duration}</span>
+          </div>
+          {pkg.flightInfo?.flight && (
+            <div className="flex items-center gap-1">
+              <Plane className="w-3 h-3" />
+              <span className="text-xs">{pkg.flightInfo.flight}</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="font-display text-xl font-bold text-foreground mb-4">{pkg.name}</h3>
-        <div className={`grid grid-cols-${Math.min(priceEntries.length, 3)} gap-2 mb-4`}>
-          {priceEntries.map(([label, price]) => (
-            <div key={label} className="bg-secondary/50 backdrop-blur-sm rounded-lg p-2.5 text-center border border-border/50 group-hover:border-accent/20 transition-colors">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
-              <p className="text-sm font-semibold text-foreground">{formatPrice(price!)}</p>
-            </div>
-          ))}
+        <h3 className="font-display text-lg font-bold text-foreground mb-2 line-clamp-2">{pkg.name}</h3>
+        
+        {pkg.nightsBreakup && (
+          <p className="text-xs text-muted-foreground mb-3">Nights Breakup: {pkg.nightsBreakup}</p>
+        )}
+
+        <div className="mb-3">
+          <p className="text-xs text-muted-foreground mb-1">Starting from</p>
+          <p className="text-xl font-bold text-accent">{formatPrice(lowestPrice)}</p>
         </div>
+
         <div className="mb-5 flex-1 space-y-1">
-          {pkg.hotels.map((h) => (
+          {pkg.hotels.slice(0, 3).map((h) => (
             <p key={h.name} className="text-xs text-muted-foreground">
               🏨 {h.name} – <span className="text-accent font-medium">{h.distance}</span>
             </p>
