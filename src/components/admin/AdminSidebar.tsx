@@ -3,6 +3,7 @@ import {
   Package,
   Hotel,
   ClipboardList,
+  MessageSquare,
   ArrowLeft,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
