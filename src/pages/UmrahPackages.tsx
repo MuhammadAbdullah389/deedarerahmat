@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { umrahPackages, PackageType } from "@/data/packages";
+import { usePackages } from "@/hooks/useSupabase";
+import { PackageType } from "@/data/packages";
 import PackageCard from "@/components/packages/PackageCard";
 import PackageModal from "@/components/packages/PackageModal";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
+import { Skeleton } from "@/components/ui/skeleton";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
 
 const UmrahPackages = () => {
+  const { data: packages, isLoading } = usePackages('umrah');
   const [selectedPkg, setSelectedPkg] = useState<PackageType | null>(null);
 
   return (
@@ -34,11 +37,19 @@ const UmrahPackages = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {umrahPackages.map((pkg, i) => (
-              <ScrollReveal key={pkg.id} delay={i * 0.1}>
-                <PackageCard pkg={pkg} onViewDetails={setSelectedPkg} />
-              </ScrollReveal>
-            ))}
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="h-64 w-full rounded-lg" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ))
+              : packages?.map((pkg, i) => (
+                  <ScrollReveal key={pkg.id} delay={i * 0.1}>
+                    <PackageCard pkg={pkg} onViewDetails={setSelectedPkg} />
+                  </ScrollReveal>
+                ))}
           </div>
         </div>
       </section>

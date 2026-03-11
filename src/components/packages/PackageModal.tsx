@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PackageType, formatPrice } from "@/data/packages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Building, Star, Phone, Plane, Calendar, AlertTriangle, FileText } from "lucide-react";
+import { Check, Clock, Building, Star, Phone, Plane, Calendar, AlertTriangle, FileText, ArrowLeft } from "lucide-react";
 import HajjRegistrationForm from "@/components/forms/HajjRegistrationForm";
 import UmrahRegistrationForm from "@/components/forms/UmrahRegistrationForm";
 
@@ -12,14 +12,120 @@ interface PackageModalProps {
   onClose: () => void;
 }
 
+const sharingLabels: Record<string, string> = {
+  double: 'Double Sharing',
+  triple: 'Triple Sharing',
+  quad: 'Quad Sharing',
+  quint: 'Quint Sharing',
+};
+
 const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
-  const [showForm, setShowForm] = useState(false);
+  const [step, setStep] = useState<'details' | 'sharing' | 'form'>('details');
+  const [selectedSharing, setSelectedSharing] = useState<string>('');
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+
+  const buildWhatsAppUrl = (priceText: string, hotelText: string) => {
+    const message = `Assalam o Alaikum,\n\nI am interested in the following package:\n\nPackage Name: ${pkg?.name || ''}\nPrice: ${priceText}\nDuration: ${pkg?.duration || ''}\nHotel: ${hotelText}\n\nPlease share more details.`;
+    return `https://wa.me/923422356719?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleClose = () => {
+    setStep('details');
+    setSelectedSharing('');
+    setSelectedPrice(null);
+    onClose();
+  };
 
   if (!pkg) return null;
 
-  if (showForm) {
+  if (step === 'sharing') {
+    const sharingEntries = Object.entries(pkg.prices).filter(([, v]) => v !== undefined) as [string, number][];
+    const selectedSharingText = selectedSharing && selectedPrice
+      ? `${sharingLabels[selectedSharing] || selectedSharing} - ${formatPrice(selectedPrice)}`
+      : '';
+    const selectedHotelText = pkg.hotels[0]
+      ? `${pkg.hotels[0].name} (${pkg.hotels[0].city} - ${pkg.hotels[0].distance})`
+      : 'Please share hotel details';
+    const selectedWhatsAppUrl = selectedSharingText
+      ? buildWhatsAppUrl(selectedSharingText, selectedHotelText)
+      : '';
     return (
-      <Dialog open={open} onOpenChange={() => { setShowForm(false); onClose(); }}>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="max-w-lg bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-foreground">Select Room Sharing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 mt-2">
+            <p className="text-sm text-muted-foreground">
+              Package: <strong className="text-foreground">{pkg.name}</strong>
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {sharingEntries.map(([type, price]) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => { setSelectedSharing(type); setSelectedPrice(price); }}
+                  className={`rounded-xl border-2 p-4 text-center transition-all duration-200 cursor-pointer ${
+                    selectedSharing === type
+                      ? 'border-accent bg-accent/10 shadow-gold'
+                      : 'border-border bg-secondary/50 hover:border-accent/50'
+                  }`}
+                >
+                  <p className="text-xs text-muted-foreground mb-1">{sharingLabels[type] || type}</p>
+                  <p className="text-lg font-bold text-accent">{formatPrice(price)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">per person</p>
+                </button>
+              ))}
+            </div>
+
+            {selectedSharing && selectedPrice ? (
+              <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Selected Plan</p>
+                  <p className="font-bold text-foreground">{sharingLabels[selectedSharing] || selectedSharing}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Amount to Pay</p>
+                  <p className="text-2xl font-bold text-accent">{formatPrice(selectedPrice)}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground italic">Select a sharing type above to see your bill</p>
+            )}
+
+            <div className="flex gap-3 pt-1">
+              <Button variant="outline" onClick={() => setStep('details')} className="gap-2">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </Button>
+              <Button
+                type="button"
+                variant="whatsapp"
+                className="flex-1 gap-2"
+                disabled={!selectedSharing || !selectedPrice}
+                onClick={() => {
+                  if (selectedWhatsAppUrl) window.open(selectedWhatsAppUrl, '_blank', 'noopener,noreferrer');
+                }}
+              >
+                <Phone className="w-4 h-4" /> Book via WhatsApp
+              </Button>
+              <Button
+                variant="gold"
+                className="flex-1 shadow-gold"
+                disabled={!selectedSharing}
+                onClick={() => setStep('form')}
+              >
+                Proceed to Apply
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (step === 'form') {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-foreground">
@@ -27,9 +133,19 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
             </DialogTitle>
           </DialogHeader>
           {pkg.type === 'hajj' ? (
-            <HajjRegistrationForm packageName={pkg.name} onBack={() => setShowForm(false)} />
+            <HajjRegistrationForm
+              packageName={pkg.name}
+              sharingType={selectedSharing}
+              amountPkr={selectedPrice}
+              onBack={() => setStep('sharing')}
+            />
           ) : (
-            <UmrahRegistrationForm packageName={pkg.name} onBack={() => setShowForm(false)} />
+            <UmrahRegistrationForm
+              packageName={pkg.name}
+              sharingType={selectedSharing}
+              amountPkr={selectedPrice}
+              onBack={() => setStep('sharing')}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -39,7 +155,7 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
   const priceEntries = Object.entries(pkg.prices).filter(([, v]) => v !== undefined);
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl text-foreground flex items-center gap-3">
@@ -200,14 +316,12 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
 
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
-            <Button variant="gold" className="flex-1 gap-2 shadow-gold" onClick={() => setShowForm(true)}>
+            <Button variant="gold" className="flex-1 gap-2 shadow-gold" onClick={() => setStep('sharing')}>
               Apply Now
             </Button>
-            <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer" className="flex-1">
-              <Button variant="whatsapp" className="w-full gap-2">
-                <Phone className="w-4 h-4" /> Book via WhatsApp
-              </Button>
-            </a>
+            <Button variant="whatsapp" className="flex-1 gap-2" onClick={() => setStep('sharing')}>
+              <Phone className="w-4 h-4" /> Book via WhatsApp
+            </Button>
             <a href="tel:+923422356719" className="flex-1">
               <Button variant="outline" className="w-full gap-2">
                 <Phone className="w-4 h-4" /> Call Now

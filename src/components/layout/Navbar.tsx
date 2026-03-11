@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.png";
+import { LoginModal } from "../LoginModal";
+import { useAuth } from "@/lib/authContext";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -19,13 +21,20 @@ const navLinks = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    window.location.href = '/';
+  };
 
   return (
     <motion.nav
@@ -76,6 +85,24 @@ const Navbar = () => {
               <Phone className="w-4 h-4" /> WhatsApp
             </Button>
           </a>
+          {user ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          ) : (
+            <Button
+              variant="gold"
+              size="sm"
+              className="gap-2"
+              onClick={() => setLoginModalOpen(true)}
+            >
+              <LogIn className="w-4 h-4" /> Login
+            </Button>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -126,10 +153,29 @@ const Navbar = () => {
                   <Phone className="w-4 h-4" /> WhatsApp Us
                 </Button>
               </a>
+              {user ? (
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              ) : (
+                <Button
+                  variant="gold"
+                  className="w-full gap-2 mt-2"
+                  onClick={() => setLoginModalOpen(true)}
+                >
+                  <LogIn className="w-4 h-4" /> Login
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </motion.nav>
   );
 };

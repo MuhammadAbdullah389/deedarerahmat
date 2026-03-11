@@ -2,10 +2,12 @@ import { Link } from "react-router-dom";
 import { Star, Quote, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { testimonials } from "@/data/packages";
 import ScrollReveal from "@/components/animations/ScrollReveal";
+import { useApprovedTestimonials } from "@/hooks/useSupabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TestimonialsSection = () => {
+  const { data: testimonials, isLoading } = useApprovedTestimonials();
   return (
     <section className="py-24 bg-background relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
@@ -20,32 +22,40 @@ const TestimonialsSection = () => {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {testimonials.map((t, i) => (
-            <ScrollReveal key={t.id} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.3 }}
-                className="glass-card rounded-2xl p-8 hover:shadow-gold transition-all duration-500 relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-accent/5 to-transparent rounded-bl-[40px]" />
-                <div className="w-10 h-10 rounded-xl gradient-gold flex items-center justify-center mb-5 shadow-gold group-hover:animate-pulse-glow transition-all">
-                  <Quote className="w-5 h-5 text-primary-foreground" />
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="glass-card rounded-2xl p-8 space-y-4">
+                  <Skeleton className="h-10 w-10 rounded-xl" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-12 w-full" />
                 </div>
-                <p className="text-foreground/80 text-sm leading-relaxed mb-6 italic">"{t.text}"</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-display text-base font-bold text-foreground">{t.name}</p>
-                    <p className="text-muted-foreground text-xs">{t.location}</p>
-                  </div>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: t.rating }).map((_, j) => (
-                      <Star key={j} className="w-3.5 h-3.5 fill-accent text-accent" />
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          ))}
+              ))
+            : testimonials?.map((t, i) => (
+                <ScrollReveal key={t.id} delay={i * 0.1}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.3 }}
+                    className="glass-card rounded-2xl p-8 hover:shadow-gold transition-all duration-500 relative overflow-hidden group"
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-accent/5 to-transparent rounded-bl-[40px]" />
+                    <div className="w-10 h-10 rounded-xl gradient-gold flex items-center justify-center mb-5 shadow-gold group-hover:animate-pulse-glow transition-all">
+                      <Quote className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <p className="text-foreground/80 text-sm leading-relaxed mb-6 italic">"{t.text}"</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-display text-base font-bold text-foreground">{t.name}</p>
+                        <p className="text-muted-foreground text-xs">{t.location || 'Pakistan'}</p>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: t.rating }).map((_, j) => (
+                          <Star key={j} className="w-3.5 h-3.5 fill-accent text-accent" />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                </ScrollReveal>
+              ))}
         </div>
 
         <ScrollReveal delay={0.3}>

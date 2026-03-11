@@ -10,10 +10,18 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { toast } from "sonner";
+import { useCreateTestimonial } from "@/hooks/useSupabase";
+import { useAuth } from "@/lib/authContext";
 
 const SubmitTestimonial = () => {
+  const { user } = useAuth();
+  const { mutate: createTestimonial, isPending } = useCreateTestimonial();
   const [formData, setFormData] = useState({
-    name: "", location: "", packageType: "", rating: 5, text: "",
+    name: user?.email?.split('@')[0] || "",
+    location: "",
+    packageType: "" as 'hajj' | 'umrah' | null,
+    rating: 5,
+    text: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,8 +30,25 @@ const SubmitTestimonial = () => {
       toast.error("Please fill in all required fields");
       return;
     }
-    toast.success("Thank you! Your testimonial has been submitted for review.");
-    setFormData({ name: "", location: "", packageType: "", rating: 5, text: "" });
+
+    createTestimonial({
+      user_id: user?.id || null,
+      name: formData.name,
+      location: formData.location || null,
+      rating: formData.rating,
+      text: formData.text,
+      package_type: formData.packageType,
+      status: 'pending',
+    }, {
+      onSuccess: () => {
+        toast.success("Thank you! Your testimonial has been submitted for review.");
+        setFormData({ name: user?.email?.split('@')[0] || "", location: "", packageType: null, rating: 5, text: "" });
+      },
+      onError: (error) => {
+        toast.error("Failed to submit testimonial. Please try again.");
+        console.error(error);
+      },
+    });
   };
 
   return (
@@ -99,8 +124,8 @@ const SubmitTestimonial = () => {
                 />
               </div>
 
-              <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base shadow-gold">
-                <Send className="w-5 h-5" /> Submit Testimonial
+              <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base shadow-gold" disabled={isPending}>
+                <Send className="w-5 h-5" /> {isPending ? "Submitting..." : "Submit Testimonial"}
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">

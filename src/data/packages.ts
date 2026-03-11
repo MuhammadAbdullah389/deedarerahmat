@@ -262,6 +262,9 @@ export const testimonials = [
   },
 ];
 
-export const formatPrice = (price: number): string => {
+export const formatPrice = (price?: number | null): string => {
+  if (typeof price !== 'number' || Number.isNaN(price)) {
+    return '—';
+  }
   return `PKR ${price.toLocaleString()}`;
 };

@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, Clock, ArrowRight, Send } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,8 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { toast } from "sonner";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
+import { useCreateContactMessage } from "@/hooks/useSupabase";
+import { useAuth } from "@/lib/authContext";
 
 const contactItems = [
   { icon: Phone, label: "Phone", value: "+92 342 2356719", href: "tel:+923422356719" },
@@ -19,9 +22,41 @@ const contactItems = [
 ];
 
 const ContactUs = () => {
+  const { user } = useAuth();
+  const { mutate: createContactMessage, isPending } = useCreateContactMessage();
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Message sent! We will get back to you soon.");
+    if (!formData.fullName || !formData.phone || !formData.email || !formData.message) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    createContactMessage(
+      {
+        user_id: user?.id || null,
+        full_name: formData.fullName,
+        phone: formData.phone,
+        email: formData.email,
+        subject: formData.subject || null,
+        message: formData.message,
+        status: "new",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Message sent! We will get back to you soon.");
+          setFormData({ fullName: "", phone: "", email: "", subject: "", message: "" });
+        },
+        onError: () => toast.error("Failed to send message. Please try again."),
+      }
+    );
   };
 
   return (
@@ -102,13 +137,13 @@ const ContactUs = () => {
                 <p className="text-muted-foreground text-sm mb-6">Fill out the form and we'll respond within 24 hours.</p>
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><Label>Full Name *</Label><Input required placeholder="Your name" className="mt-1" /></div>
-                    <div><Label>Phone *</Label><Input required placeholder="+92 300 1234567" className="mt-1" /></div>
+                    <div><Label>Full Name *</Label><Input required placeholder="Your name" className="mt-1" value={formData.fullName} onChange={(e) => setFormData((p) => ({ ...p, fullName: e.target.value }))} /></div>
+                    <div><Label>Phone *</Label><Input required placeholder="+92 300 1234567" className="mt-1" value={formData.phone} onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))} /></div>
                   </div>
-                  <div><Label>Email *</Label><Input type="email" required placeholder="your@email.com" className="mt-1" /></div>
-                  <div><Label>Subject</Label><Input placeholder="How can we help?" className="mt-1" /></div>
-                  <div><Label>Message *</Label><Textarea required placeholder="Write your message..." className="mt-1 min-h-[120px]" /></div>
-                  <Button type="submit" variant="gold" size="lg" className="w-full gap-2 shadow-gold">
+                  <div><Label>Email *</Label><Input type="email" required placeholder="your@email.com" className="mt-1" value={formData.email} onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))} /></div>
+                  <div><Label>Subject</Label><Input placeholder="How can we help?" className="mt-1" value={formData.subject} onChange={(e) => setFormData((p) => ({ ...p, subject: e.target.value }))} /></div>
+                  <div><Label>Message *</Label><Textarea required placeholder="Write your message..." className="mt-1 min-h-[120px]" value={formData.message} onChange={(e) => setFormData((p) => ({ ...p, message: e.target.value }))} /></div>
+                  <Button type="submit" variant="gold" size="lg" className="w-full gap-2 shadow-gold" disabled={isPending}>
                     <Send className="w-5 h-5" /> Send Message
                   </Button>
                 </form>

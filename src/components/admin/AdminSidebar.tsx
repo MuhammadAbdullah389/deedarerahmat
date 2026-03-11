@@ -3,6 +3,7 @@ import {
   Package,
   Hotel,
   ClipboardList,
+  FileText,
   ArrowLeft,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -24,6 +25,7 @@ const adminItems = [
   { title: "Packages", url: "/admin/packages", icon: Package },
   { title: "Hotels", url: "/admin/hotels", icon: Hotel },
   { title: "Bookings", url: "/admin/bookings", icon: ClipboardList },
+  { title: "Documents", url: "/admin/documents", icon: FileText },
 ];
 
 export function AdminSidebar() {

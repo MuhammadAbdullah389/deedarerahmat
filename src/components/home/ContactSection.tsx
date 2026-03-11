@@ -52,7 +52,7 @@ const ContactSection = () => {
                 </motion.div>
               ))}
 
-              <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="gold" size="lg" className="w-full gap-2 mt-2 shadow-gold">
                   <Phone className="w-5 h-5" /> Chat on WhatsApp <ArrowRight className="w-4 h-4" />
                 </Button>

@@ -1,0 +1,856 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import type { PackageType } from '@/data/packages';
+
+// ========== TYPES ==========
+export interface SupabasePackage {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'hajj' | 'umrah';
+  duration_text: string;
+  description: string;
+  featured: boolean;
+  active: boolean;
+  image_url: string;
+  flight_info: any;
+  return_flight_info: any;
+  itinerary: any[];
+  package_details: string[];
+  requirements: string[];
+  notes: string[];
+  overseas_discount: string | null;
+}
+
+export interface PackagePrice {
+  id: string;
+  package_id: string;
+  sharing: 'double' | 'triple' | 'quad' | 'quint';
+  price_pkr: number;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  city: 'Makkah' | 'Madinah' | 'Aziziya';
+  distance_meters: number;
+  active: boolean;
+}
+
+export interface Booking {
+  id: string;
+  booking_code: string;
+  user_id: string | null;
+  package_id: string | null;
+  package_name_snapshot: string;
+  package_type: 'hajj' | 'umrah' | 'visa';
+  sharing_type: 'double' | 'triple' | 'quad' | 'quint' | null;
+  amount_pkr: number | null;
+  status: 'pending' | 'documents' | 'visa' | 'confirmed' | 'cancelled';
+  travel_date: string | null;
+  applicant_email: string | null;
+  applicant_phone: string | null;
+  temp_password_token: string | null;
+  temp_password_expires_at: string | null;
+  password_reset_required: boolean;
+  form_data: any;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Testimonial {
+  id: string;
+  user_id: string | null;
+  name: string;
+  location: string | null;
+  rating: number;
+  text: string;
+  package_type: 'hajj' | 'umrah' | null;
+  status: 'pending' | 'approved' | 'rejected';
+  published_at: string | null;
+  created_at: string;
+}
+
+export interface VisaInquiry {
+  id: string;
+  user_id: string | null;
+  name: string;
+  phone: string;
+  email: string | null;
+  country: string;
+  passport_no: string | null;
+  travel_date: string | null;
+  message: string | null;
+  status: 'new' | 'in_progress' | 'resolved' | 'closed';
+  created_at: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  user_id: string | null;
+  full_name: string;
+  phone: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  status: 'new' | 'in_progress' | 'resolved' | 'closed';
+  created_at: string;
+}
+
+export interface BookingDocument {
+  id: string;
+  booking_id: string;
+  document_type: 'passport' | 'cnic' | 'photo' | 'vaccination_certificate' | 'bank_statement';
+  file_path: string;
+  file_size_bytes: number | null;
+  mime_type: string | null;
+  status: 'pending' | 'uploaded' | 'approved' | 'rejected' | 'requested';
+  admin_notes: string | null;
+  uploaded_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequiredDocument {
+  id: string;
+  document_type: string;
+  display_name: string;
+  description: string | null;
+  is_required: boolean;
+  created_at: string;
+}
+
+export interface PackageUpsertInput {
+  id?: string;
+  name: string;
+  type: 'hajj' | 'umrah';
+  duration_text: string;
+  description?: string;
+  featured?: boolean;
+  active?: boolean;
+  image_url?: string;
+  flight_info?: any;
+  return_flight_info?: any;
+  itinerary?: any[];
+  package_details?: string[];
+  requirements?: string[];
+  notes?: string[];
+  overseas_discount?: string | null;
+  prices: Partial<Record<'double' | 'triple' | 'quad' | 'quint', number>>;
+  hotel_ids?: string[];
+}
+
+const mapDbPackageToUiPackage = (pkg: any): PackageType => {
+  const prices = (pkg.package_prices || []).reduce((acc: Record<string, number>, p: any) => {
+    if (p.sharing && p.price_pkr) acc[p.sharing] = p.price_pkr;
+    return acc;
+  }, {});
+
+  return {
+    id: pkg.id,
+    name: pkg.name,
+    type: pkg.type,
+    duration: pkg.duration_text || '',
+    prices,
+    hotels: (pkg.package_hotels || []).map((ph: any) => ({
+      name: ph.hotels?.name || 'Hotel',
+      city: ph.hotels?.city || '',
+      distance: ph.hotels?.distance_meters ? `${ph.hotels.distance_meters}m` : '',
+    })),
+    services: (pkg.package_services || []).map((s: any) => s.service_text),
+    inclusions: (pkg.package_inclusions || []).map((i: any) => i.inclusion_text),
+    image: pkg.image_url || 'default',
+    featured: pkg.featured,
+    itinerary: pkg.itinerary || [],
+    flightInfo: pkg.flight_info || undefined,
+    returnFlightInfo: pkg.return_flight_info || undefined,
+    packageDetails: pkg.package_details || [],
+    requirements: pkg.requirements || [],
+    notes: pkg.notes || [],
+    overseasDiscount: pkg.overseas_discount || undefined,
+  };
+};
+
+// ========== PACKAGES ==========
+export function usePackages(type?: 'hajj' | 'umrah') {
+  return useQuery({
+    queryKey: ['packages', type],
+    queryFn: async () => {
+      let query = supabase
+        .from('packages')
+        .select(`
+          *,
+          package_prices(sharing, price_pkr),
+          package_hotels(sort_order, hotels(name, city, distance_meters)),
+          package_services(service_text),
+          package_inclusions(inclusion_text)
+        `)
+        .eq('active', true);
+      if (type) query = query.eq('type', type);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map(mapDbPackageToUiPackage) as PackageType[];
+    },
+  });
+}
+
+export function usePackageById(id: string) {
+  return useQuery({
+    queryKey: ['package', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('packages')
+        .select(`
+          *,
+          package_prices(sharing, price_pkr),
+          package_hotels(sort_order, hotels(name, city, distance_meters)),
+          package_services(service_text),
+          package_inclusions(inclusion_text)
+        `)
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return mapDbPackageToUiPackage(data) as PackageType;
+    },
+    enabled: !!id,
+  });
+}
+
+export function usePackagePrices(packageId: string) {
+  return useQuery({
+    queryKey: ['package-prices', packageId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('package_prices')
+        .select('*')
+        .eq('package_id', packageId);
+      if (error) throw error;
+      return data as PackagePrice[];
+    },
+    enabled: !!packageId,
+  });
+}
+
+export function usePackageHotels(packageId: string) {
+  return useQuery({
+    queryKey: ['package-hotels', packageId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('package_hotels')
+        .select('*, hotel_id(*)')
+        .eq('package_id', packageId)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!packageId,
+  });
+}
+
+export function usePackageServices(packageId: string) {
+  return useQuery({
+    queryKey: ['package-services', packageId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('package_services')
+        .select('*')
+        .eq('package_id', packageId)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!packageId,
+  });
+}
+
+export function usePackageInclusions(packageId: string) {
+  return useQuery({
+    queryKey: ['package-inclusions', packageId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('package_inclusions')
+        .select('*')
+        .eq('package_id', packageId)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!packageId,
+  });
+}
+
+// ========== HOTELS ==========
+export function useHotels(city?: string) {
+  return useQuery({
+    queryKey: ['hotels', city],
+    queryFn: async () => {
+      let query = supabase.from('hotels').select('*').eq('active', true);
+      if (city) query = query.eq('city', city);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Hotel[];
+    },
+  });
+}
+
+export function useCreateHotel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (hotel: Omit<Hotel, 'id'>) => {
+      const { data, error } = await supabase.from('hotels').insert([hotel]).select().single();
+      if (error) throw error;
+      return data as Hotel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hotels'] });
+    },
+  });
+}
+
+export function useDeleteHotel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (hotelId: string) => {
+      const { error } = await supabase.from('hotels').delete().eq('id', hotelId);
+      if (error) throw error;
+      return hotelId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hotels'] });
+    },
+  });
+}
+
+export function useUpdateHotel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Hotel> & { id: string }) => {
+      const { data, error } = await supabase.from('hotels').update(updates).eq('id', id).select().single();
+      if (error) throw error;
+      return data as Hotel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hotels'] });
+    },
+  });
+}
+
+// ========== BOOKINGS ==========
+export function useUserBookings(userId: string) {
+  return useQuery({
+    queryKey: ['bookings', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Booking[];
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useAllBookings() {
+  return useQuery({
+    queryKey: ['all-bookings'],
+    queryFn: async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        clearTimeout(timeoutId);
+        
+        if (error) {
+          console.error('useAllBookings error:', error);
+          throw error;
+        }
+        return data as Booking[];
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        console.error('useAllBookings caught error:', err);
+        throw err;
+      }
+    },
+    retry: 1,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+}
+
+export function useUpdateBookingStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Booking['status'] }) => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Booking;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['all-bookings'] });
+    },
+  });
+}
+
+export function useCreateBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (booking: Omit<Booking, 'id' | 'booking_code' | 'created_at' | 'updated_at'>) => {
+      // Ensure all required fields are present
+      const bookingPayload = {
+        ...booking,
+        password_reset_required: booking.password_reset_required ?? false,
+      };
+      
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([bookingPayload])
+        .select();
+      
+      if (error) {
+        console.error('Booking creation error:', error);
+        throw new Error(`Failed to create booking: ${error.message}`);
+      }
+      
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['all-bookings'] });
+    },
+    onError: (error: any) => {
+      console.error('Mutation error:', error);
+    },
+  });
+}
+
+export function useAdminPackages(type?: 'hajj' | 'umrah') {
+  return useQuery({
+    queryKey: ['admin-packages', type],
+    queryFn: async () => {
+      let query = supabase
+        .from('packages')
+        .select(`
+          *,
+          package_prices(sharing, price_pkr),
+          package_hotels(sort_order, hotels(name, city, distance_meters)),
+          package_services(service_text),
+          package_inclusions(inclusion_text)
+        `);
+      if (type) query = query.eq('type', type);
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(mapDbPackageToUiPackage) as PackageType[];
+    },
+  });
+}
+
+export function useCreatePackage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: PackageUpsertInput) => {
+      const slug = payload.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+      const inferredImage = payload.type === 'hajj' ? 'hajj' : 'umrah';
+
+      const { data: pkg, error: pkgError } = await supabase
+        .from('packages')
+        .insert([
+          {
+            name: payload.name,
+            slug,
+            type: payload.type,
+            duration_text: payload.duration_text,
+            description: payload.description || '',
+            featured: payload.featured ?? false,
+            active: payload.active ?? true,
+            image_url: payload.image_url || inferredImage,
+            flight_info: payload.flight_info || {},
+            return_flight_info: payload.return_flight_info || {},
+            itinerary: payload.itinerary || [],
+            package_details: payload.package_details || [],
+            requirements: payload.requirements || [],
+            notes: payload.notes || [],
+            overseas_discount: payload.overseas_discount ?? null,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (pkgError) throw pkgError;
+
+      const priceRows = Object.entries(payload.prices)
+        .filter(([, value]) => typeof value === 'number' && Number(value) > 0)
+        .map(([sharing, price_pkr]) => ({
+          package_id: pkg.id,
+          sharing,
+          price_pkr,
+        }));
+
+      if (priceRows.length) {
+        const { error: pricesError } = await supabase.from('package_prices').insert(priceRows as any[]);
+        if (pricesError) throw pricesError;
+      }
+
+      const hotelRows = (payload.hotel_ids || []).map((hotelId, i) => ({
+        package_id: pkg.id,
+        hotel_id: hotelId,
+        sort_order: i,
+      }));
+
+      if (hotelRows.length) {
+        const { error: hotelsError } = await supabase.from('package_hotels').insert(hotelRows);
+        if (hotelsError) throw hotelsError;
+      }
+
+      return pkg.id as string;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-packages'] });
+    },
+  });
+}
+
+export function useDeletePackage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (packageId: string) => {
+      await supabase.from('package_prices').delete().eq('package_id', packageId);
+      await supabase.from('package_hotels').delete().eq('package_id', packageId);
+      await supabase.from('package_services').delete().eq('package_id', packageId);
+      await supabase.from('package_inclusions').delete().eq('package_id', packageId);
+
+      const { error } = await supabase.from('packages').delete().eq('id', packageId);
+      if (error) throw error;
+      return packageId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-packages'] });
+    },
+  });
+}
+
+export function useUpdatePackage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<SupabasePackage> & { id: string }) => {
+      const { data, error } = await supabase.from('packages').update(updates).eq('id', id).select().single();
+      if (error) throw error;
+      return data as SupabasePackage;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-packages'] });
+    },
+  });
+}
+
+// ========== TESTIMONIALS ==========
+export function useApprovedTestimonials() {
+  return useQuery({
+    queryKey: ['testimonials-approved'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Testimonial[];
+    },
+  });
+}
+
+export function useUserTestimonials(userId: string) {
+  return useQuery({
+    queryKey: ['testimonials', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Testimonial[];
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useAllTestimonials() {
+  return useQuery({
+    queryKey: ['all-testimonials'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Testimonial[];
+    },
+  });
+}
+
+export function useCreateTestimonial() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (testimonial: Omit<Testimonial, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .insert([testimonial])
+        .select();
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['all-testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials-approved'] });
+    },
+  });
+}
+
+export function useUpdateTestimonial() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Testimonial> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .update(updates)
+        .eq('id', id)
+        .select();
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['all-testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials-approved'] });
+    },
+  });
+}
+
+// ========== VISA INQUIRIES ==========
+export function useCreateVisaInquiry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (inquiry: Omit<VisaInquiry, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase
+        .from('visa_inquiries')
+        .insert([inquiry])
+        .select();
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visa-inquiries'] });
+    },
+  });
+}
+
+export function useAllVisaInquiries() {
+  return useQuery({
+    queryKey: ['visa-inquiries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('visa_inquiries')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as VisaInquiry[];
+    },
+  });
+}
+
+// ========== CONTACT MESSAGES ==========
+export function useCreateContactMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (message: Omit<ContactMessage, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .insert([message])
+        .select();
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
+    },
+  });
+}
+
+export function useAllContactMessages() {
+  return useQuery({
+    queryKey: ['contact-messages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as ContactMessage[];
+    },
+  });
+}
+
+// ========== DOCUMENT MANAGEMENT ==========
+export function useRequiredDocuments(packageType: 'hajj' | 'umrah') {
+  return useQuery({
+    queryKey: ['required-documents', packageType],
+    queryFn: async () => {
+      const tableName = packageType === 'hajj' ? 'hajj_required_documents' : 'umrah_required_documents';
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('is_required', true)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as RequiredDocument[];
+    },
+    enabled: !!packageType,
+  });
+}
+
+export function useBookingDocuments(bookingId: string) {
+  return useQuery({
+    queryKey: ['booking-documents', bookingId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('booking_documents')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as BookingDocument[];
+    },
+    enabled: !!bookingId,
+  });
+}
+
+export function useUploadBookingDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      bookingId,
+      documentType,
+      file,
+    }: {
+      bookingId: string;
+      documentType: string;
+      file: File;
+    }) => {
+      // Get booking for user ID
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .select('user_id')
+        .eq('id', bookingId)
+        .single();
+      
+      if (bookingError) throw bookingError;
+
+      const userId = booking.user_id || 'anonymous';
+      const fileName = `${bookingId}/${documentType}/${Date.now()}-${file.name}`;
+      const filePath = `${userId}/${fileName}`;
+
+      // Upload file to storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('booking-documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Create document record
+      const { data, error } = await supabase
+        .from('booking_documents')
+        .upsert([
+          {
+            booking_id: bookingId,
+            document_type: documentType,
+            file_path: uploadData.path,
+            file_size_bytes: file.size,
+            mime_type: file.type,
+            status: 'uploaded',
+            uploaded_at: new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['booking-documents', variables.bookingId] });
+    },
+  });
+}
+
+export function useUpdateDocumentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      documentId,
+      status,
+      adminNotes,
+    }: {
+      documentId: string;
+      status: 'approved' | 'rejected' | 'requested';
+      adminNotes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('booking_documents')
+        .update({
+          status,
+          admin_notes: adminNotes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', documentId)
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['booking-documents'] });
+    },
+  });
+}
+
+export function useGetAllBookingsWithDocuments() {
+  return useQuery({
+    queryKey: ['bookings-with-documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          booking_documents (*)
+        `)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}

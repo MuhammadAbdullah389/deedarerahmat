@@ -11,6 +11,8 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import visaImage from "@/assets/visa-assistance.jpg";
 import { toast } from "sonner";
+import { useCreateVisaInquiry } from "@/hooks/useSupabase";
+import { useAuth } from "@/lib/authContext";
 
 const visaCountries = [
   "Saudi Arabia", "Turkey", "Malaysia", "Thailand", "UAE", "Iran", "Iraq",
@@ -34,6 +36,8 @@ const fascinations = [
 ];
 
 const VisaAssistance = () => {
+  const { user } = useAuth();
+  const { mutate: createVisaInquiry, isPending } = useCreateVisaInquiry();
   const [formData, setFormData] = useState({
     name: "", phone: "", email: "", country: "", passportNo: "", travelDate: "", message: "",
   });
@@ -44,8 +48,27 @@ const VisaAssistance = () => {
       toast.error("Please fill in all required fields");
       return;
     }
-    toast.success("Your visa inquiry has been submitted! We'll contact you shortly.");
-    setFormData({ name: "", phone: "", email: "", country: "", passportNo: "", travelDate: "", message: "" });
+
+    createVisaInquiry(
+      {
+        user_id: user?.id || null,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || null,
+        country: formData.country,
+        passport_no: formData.passportNo || null,
+        travel_date: formData.travelDate || null,
+        message: formData.message || null,
+        status: "new",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Your visa inquiry has been submitted! We'll contact you shortly.");
+          setFormData({ name: "", phone: "", email: "", country: "", passportNo: "", travelDate: "", message: "" });
+        },
+        onError: () => toast.error("Failed to submit inquiry. Please try again."),
+      }
+    );
   };
 
   return (
@@ -162,7 +185,7 @@ const VisaAssistance = () => {
                 <label className="text-sm font-medium text-foreground mb-1 block">Additional Message</label>
                 <Textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Any specific requirements or questions..." rows={4} />
               </div>
-              <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base">
+              <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base" disabled={isPending}>
                 <Send className="w-5 h-5" /> Submit Visa Inquiry
               </Button>
             </form>
