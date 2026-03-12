@@ -14,7 +14,6 @@ const navLinks = [
   { label: "Visa Assistance", path: "/visa-assistance" },
   { label: "About Us", path: "/about-us" },
   { label: "Contact Us", path: "/contact-us" },
-  { label: "Testimonials", path: "/submit-testimonial" },
   { label: "FAQs", path: "/faqs" },
 ];
 

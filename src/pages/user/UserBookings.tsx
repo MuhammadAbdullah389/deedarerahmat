@@ -1,8 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/user/UserLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { FolderOpen } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { useUserBookings } from "@/hooks/useSupabase";
 
@@ -23,6 +26,7 @@ const statusColors: Record<string, string> = {
 };
 
 const UserBookings = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: bookings, isLoading } = useUserBookings(user?.id || '');
 
@@ -73,6 +77,18 @@ const UserBookings = () => {
                       </span>
                     ))}
                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => navigate(`/portal/upload-documents?booking_id=${b.id}`)}
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    Open Document Portal
+                  </Button>
                 </div>
               </CardContent>
             </Card>

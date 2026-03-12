@@ -103,6 +103,8 @@ export interface BookingDocument {
   booking_id: string;
   document_type: 'passport' | 'cnic' | 'photo' | 'vaccination_certificate' | 'bank_statement';
   file_path: string;
+  file_url?: string | null;
+  file_name?: string | null;
   file_size_bytes: number | null;
   mime_type: string | null;
   status: 'pending' | 'uploaded' | 'approved' | 'rejected' | 'requested';
@@ -117,7 +119,6 @@ export interface RequiredDocument {
   document_type: string;
   display_name: string;
   description: string | null;
-  is_required: boolean;
   created_at: string;
 }
 
@@ -400,6 +401,29 @@ export function useUpdateBookingStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['all-bookings'] });
+    },
+  });
+}
+
+export function useProvisionApplicantCredentials() {
+  return useMutation({
+    mutationFn: async ({ bookingId }: { bookingId: string }) => {
+      const { data, error } = await supabase.functions.invoke('provision-applicant-credentials', {
+        body: { bookingId },
+      });
+
+      if (error) throw error;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to provision credentials');
+      }
+
+      return data as {
+        success: boolean;
+        created: boolean;
+        email: string;
+        userId: string;
+        tempPassword: string;
+      };
     },
   });
 }
@@ -714,6 +738,22 @@ export function useAllContactMessages() {
 }
 
 // ========== DOCUMENT MANAGEMENT ==========
+
+const FALLBACK_REQUIRED_DOCS: Record<'hajj' | 'umrah', RequiredDocument[]> = {
+  hajj: [
+    { id: 'f1', document_type: 'passport', display_name: 'Passport', description: 'Clear copy of passport (ID page + expiry page)', created_at: '' },
+    { id: 'f2', document_type: 'cnic', display_name: 'CNIC', description: 'Clear copy of CNIC (front and back)', created_at: '' },
+    { id: 'f3', document_type: 'photo', display_name: 'Passport Size Photo', description: '4x6 passport size color photograph', created_at: '' },
+    { id: 'f4', document_type: 'vaccination_certificate', display_name: 'Vaccination Certificate', description: 'COVID-19 and Meningitis vaccination certificates', created_at: '' },
+  ],
+  umrah: [
+    { id: 'f1', document_type: 'passport', display_name: 'Passport', description: 'Clear copy of passport (ID page + expiry page)', created_at: '' },
+    { id: 'f2', document_type: 'cnic', display_name: 'CNIC', description: 'Clear copy of CNIC (front and back)', created_at: '' },
+    { id: 'f3', document_type: 'photo', display_name: 'Passport Size Photo', description: '4x6 passport size color photograph', created_at: '' },
+    { id: 'f4', document_type: 'bank_statement', display_name: 'Bank Statement', description: 'Bank statement showing funds for the trip (last 6 months)', created_at: '' },
+  ],
+};
+
 export function useRequiredDocuments(packageType: 'hajj' | 'umrah') {
   return useQuery({
     queryKey: ['required-documents', packageType],
@@ -722,9 +762,11 @@ export function useRequiredDocuments(packageType: 'hajj' | 'umrah') {
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
-        .eq('is_required', true)
         .order('created_at', { ascending: true });
-      if (error) throw error;
+      if (error || !data || data.length === 0) {
+        // Fallback to hardcoded list if DB table is empty or unreachable
+        return FALLBACK_REQUIRED_DOCS[packageType];
+      }
       return data as RequiredDocument[];
     },
     enabled: !!packageType,
@@ -759,43 +801,40 @@ export function useUploadBookingDocument() {
       documentType: string;
       file: File;
     }) => {
-      // Get booking for user ID
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .select('user_id')
-        .eq('id', bookingId)
-        .single();
-      
-      if (bookingError) throw bookingError;
+      // Use current session user ID directly (not booking.user_id which may be null)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error('You must be logged in to upload documents');
 
-      const userId = booking.user_id || 'anonymous';
-      const fileName = `${bookingId}/${documentType}/${Date.now()}-${file.name}`;
-      const filePath = `${userId}/${fileName}`;
+      const filePath = `${user.id}/${bookingId}/${documentType}/${Date.now()}-${file.name}`;
 
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('booking-documents')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
+          upsert: true,
         });
 
       if (uploadError) throw uploadError;
 
-      // Create document record
+      // Insert or replace existing document record for this type
       const { data, error } = await supabase
         .from('booking_documents')
-        .upsert([
+        .upsert(
           {
             booking_id: bookingId,
             document_type: documentType,
             file_path: uploadData.path,
+            file_url: uploadData.path,
+            file_name: file.name,
             file_size_bytes: file.size,
             mime_type: file.type,
-            status: 'uploaded',
+            status: 'pending',
+            admin_notes: null,
             uploaded_at: new Date().toISOString(),
           },
-        ])
+          { onConflict: 'booking_id,document_type' }
+        )
         .select();
 
       if (error) throw error;

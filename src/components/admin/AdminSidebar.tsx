@@ -4,10 +4,13 @@ import {
   Hotel,
   ClipboardList,
   FileText,
+  MessageSquare,
   ArrowLeft,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/authContext";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +28,7 @@ const adminItems = [
   { title: "Packages", url: "/admin/packages", icon: Package },
   { title: "Hotels", url: "/admin/hotels", icon: Hotel },
   { title: "Bookings", url: "/admin/bookings", icon: ClipboardList },
+  { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquare },
   { title: "Documents", url: "/admin/documents", icon: FileText },
 ];
 
@@ -32,10 +36,22 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const isActive = (path: string) =>
     path === "/admin"
       ? location.pathname === "/admin"
       : location.pathname.startsWith(path);
+
+  const handleBackToSite = async () => {
+    try {
+      await signOut();
+    } catch {
+      toast.error("Failed to log out cleanly");
+    } finally {
+      navigate('/');
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -73,11 +89,9 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/" className="hover:bg-sidebar-accent/50">
+                <SidebarMenuButton onClick={handleBackToSite} className="hover:bg-sidebar-accent/50">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     {!collapsed && <span>Back to Site</span>}
-                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

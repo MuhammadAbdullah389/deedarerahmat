@@ -1,6 +1,4 @@
-import { Link } from "react-router-dom";
-import { Star, Quote, PenLine } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import { useApprovedTestimonials } from "@/hooks/useSupabase";
@@ -57,16 +55,6 @@ const TestimonialsSection = () => {
                 </ScrollReveal>
               ))}
         </div>
-
-        <ScrollReveal delay={0.3}>
-          <div className="text-center mt-12">
-            <Link to="/submit-testimonial">
-              <Button variant="outline-gold" size="lg" className="gap-2">
-                <PenLine className="w-5 h-5" /> Share Your Experience
-              </Button>
-            </Link>
-          </div>
-        </ScrollReveal>
       </div>
     </section>
   );

@@ -1,10 +1,48 @@
+import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/user/UserLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardList, CheckCircle, Clock, FileText } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { ClipboardList, CheckCircle, Clock, FileText, Upload, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
-import { useUserBookings } from "@/hooks/useSupabase";
+import { useUserBookings, useBookingDocuments } from "@/hooks/useSupabase";
+
+// Per-booking alert: checks uploaded docs and shows banner if action needed
+function DocUploadAlert({ booking }: { booking: { id: string; booking_code: string; package_name_snapshot: string } }) {
+  const navigate = useNavigate();
+  const { data: uploadedDocs = [] } = useBookingDocuments(booking.id);
+
+  const hasRejected = uploadedDocs.some(d => d.status === 'rejected');
+  const hasNone = uploadedDocs.length === 0;
+
+  if (!hasNone && !hasRejected) return null;
+
+  return (
+    <Alert className="border-amber-300 bg-amber-50">
+      <AlertTriangle className="h-4 w-4 text-amber-600" />
+      <AlertTitle className="text-amber-800 font-semibold">
+        {hasRejected ? "Action Required: Document(s) Rejected" : "Action Required: Upload Your Documents"}
+      </AlertTitle>
+      <AlertDescription className="text-amber-700 mt-1 flex flex-col sm:flex-row sm:items-center gap-3">
+        <span className="flex-1">
+          {hasRejected
+            ? `One or more documents for application ${booking.booking_code} (${booking.package_name_snapshot}) were rejected. Please re-upload them.`
+            : `Your application ${booking.booking_code} (${booking.package_name_snapshot}) is waiting for documents. Please upload them to proceed.`}
+        </span>
+        <Button
+          size="sm"
+          className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 gap-2"
+          onClick={() => navigate(`/portal/upload-documents?booking_id=${booking.id}`)}
+        >
+          <Upload className="w-4 h-4" />
+          Upload Now
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
 
 const UserOverview = () => {
   const { user } = useAuth();
@@ -14,6 +52,9 @@ const UserOverview = () => {
   const confirmed = bookings?.filter((b) => b.status === "confirmed").length || 0;
   const inProgress = bookings?.filter((b) => b.status === "documents" || b.status === "visa").length || 0;
   const pending = bookings?.filter((b) => b.status === "pending").length || 0;
+
+  // Bookings awaiting document uploads
+  const docPendingBookings = (bookings || []).filter(b => b.status === "documents");
 
   const stats = [
     { label: "Total Applications", value: String(total), icon: ClipboardList, color: "text-primary" },
@@ -31,6 +72,11 @@ const UserOverview = () => {
     <UserLayout>
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold text-foreground">Welcome Back!</h1>
+
+        {/* Document upload notifications */}
+        {!isLoading && docPendingBookings.map(b => (
+          <DocUploadAlert key={b.id} booking={b} />
+        ))}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {isLoading

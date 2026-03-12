@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAllBookings, useUpdateBookingStatus, type Booking } from "@/hooks/useSupabase";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAllBookings, useProvisionApplicantCredentials, useUpdateBookingStatus, type Booking } from "@/hooks/useSupabase";
 import { toast } from "sonner";
 import { Search, Filter } from "lucide-react";
 
@@ -21,7 +22,7 @@ const statusColors: Record<Booking['status'], string> = {
 
 const statusNext: Record<Booking['status'], Booking['status'] | null> = {
   pending: 'documents',
-  documents: 'visa',
+  documents: null,
   visa: 'confirmed',
   confirmed: null,
   cancelled: null,
@@ -35,9 +36,44 @@ const formatPrice = (amount: number | null) => {
 const AdminBookings = () => {
   const { data: bookings, isLoading } = useAllBookings();
   const { mutate: updateBookingStatus, isPending } = useUpdateBookingStatus();
+  const { mutateAsync: provisionCredentials, isPending: isProvisioning } = useProvisionApplicantCredentials();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
+
+  const normalizePhone = (phone?: string | null) => {
+    if (!phone) return "";
+    return phone.replace(/[^\d]/g, "");
+  };
+
+  const openWhatsAppForDocRequest = (booking: Booking, credentials: { email: string; tempPassword: string }) => {
+    const phoneRaw = (booking.form_data as any)?.phone || booking.applicant_phone || "";
+    const phone = normalizePhone(phoneRaw);
+    if (!phone) {
+      toast.error("Applicant phone is missing");
+      return;
+    }
+
+    const email = credentials.email || booking.applicant_email || (booking.form_data as any)?.email || "";
+    const singleLink = `${window.location.origin}/portal/password-change?email=${encodeURIComponent(email)}&tmp=${encodeURIComponent(credentials.tempPassword)}&booking_id=${booking.id}`;
+
+    const message = [
+      `Assalam o Alaikum! 🕌`,
+      ``,
+      `Your application *${booking.booking_code}* (${booking.package_name_snapshot}) has been moved to the *Document Request* stage.`,
+      ``,
+      `Please click the link below to set your password and upload your required documents:`,
+      ``,
+      `🔗`,
+      `${singleLink}`,
+      ``,
+      `JazakAllah Khair 🤲`,
+    ].join("\n");
+
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+  };
 
   const filtered = (bookings || []).filter(b => {
     if (filterType !== "all" && b.package_type !== filterType) return false;
@@ -59,6 +95,13 @@ const AdminBookings = () => {
     const next = statusNext[booking.status];
     if (!next) return;
 
+    // Requested flow: pending -> documents must be confirmed via popup first.
+    if (booking.status === 'pending' && next === 'documents') {
+      setSelectedBooking(booking);
+      setConfirmOpen(true);
+      return;
+    }
+
     updateBookingStatus(
       { id, status: next },
       {
@@ -66,6 +109,33 @@ const AdminBookings = () => {
         onError: () => toast.error("Failed to update booking status"),
       }
     );
+  };
+
+  const confirmMoveToDocuments = async () => {
+    if (!selectedBooking) return;
+    const booking = selectedBooking;
+
+    try {
+      const credentials = await provisionCredentials({ bookingId: booking.id });
+
+      updateBookingStatus(
+        { id: booking.id, status: 'documents' },
+        {
+          onSuccess: () => {
+            toast.success(`${booking.booking_code}: pending → documents`);
+            openWhatsAppForDocRequest(booking, {
+              email: credentials.email,
+              tempPassword: credentials.tempPassword,
+            });
+            setConfirmOpen(false);
+            setSelectedBooking(null);
+          },
+          onError: () => toast.error("Failed to update booking status"),
+        }
+      );
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to generate applicant credentials. Ensure Edge Function is deployed.");
+    }
   };
 
   return (
@@ -135,7 +205,9 @@ const AdminBookings = () => {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
                     <TableCell>
-                      {statusNext[b.status] ? (
+                      {b.status === 'documents' ? (
+                        <span className="text-xs text-muted-foreground">Waiting for docs approval</span>
+                      ) : statusNext[b.status] ? (
                         <Button size="sm" variant="outline" onClick={() => advanceStatus(b.id)} disabled={isPending}>
                           → {statusNext[b.status]}
                         </Button>
@@ -149,6 +221,25 @@ const AdminBookings = () => {
             </Table>
           </CardContent>
         </Card>
+
+        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Document Request</DialogTitle>
+              <DialogDescription>
+                Do you confirm changing status from pending to documents request? A pre-filled WhatsApp message will open for sending credentials/login links.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="gold" onClick={confirmMoveToDocuments} disabled={isPending || isProvisioning}>
+                {isProvisioning ? "Generating credentials..." : isPending ? "Updating..." : "Yes, Confirm"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

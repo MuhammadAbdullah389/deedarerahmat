@@ -136,13 +136,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
-
-          <p className="text-xs text-center text-muted-foreground">
-            Don't have an account?{' '}
-            <a href="/auth/sign-up" className="text-blue-600 hover:underline">
-              Sign up
-            </a>
-          </p>
         </form>
       </DialogContent>
     </Dialog>

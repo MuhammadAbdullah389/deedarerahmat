@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
@@ -12,18 +12,33 @@ export default function ForcedPasswordChange() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
+  const [bookingId, setBookingId] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Get email from query params or URL hash
     const emailParam = searchParams.get('email');
-    if (emailParam) {
-      setEmail(emailParam);
+    const tmpPassword = searchParams.get('tmp');
+    const bid = searchParams.get('booking_id');
+
+    if (emailParam) setEmail(emailParam);
+    if (bid) setBookingId(bid);
+
+    // Auto sign-in with temp credentials if provided
+    if (emailParam && tmpPassword) {
+      setIsSigningIn(true);
+      supabase.auth.signInWithPassword({ email: emailParam, password: tmpPassword })
+        .then(({ error: signInErr }) => {
+          if (signInErr) {
+            setError('Could not sign in with your temporary credentials. Please contact support.');
+          }
+        })
+        .finally(() => setIsSigningIn(false));
     }
   }, [searchParams]);
 
@@ -72,10 +87,13 @@ export default function ForcedPasswordChange() {
       if (updateBookingError) console.error('Booking update error:', updateBookingError);
 
       toast.success('Password changed successfully! Redirecting to document upload...');
-      
-      // Redirect to document upload portal after 1 second
+
+      const uploadPath = bookingId
+        ? `/portal/upload-documents?booking_id=${bookingId}`
+        : '/portal/upload-documents';
+
       setTimeout(() => {
-        navigate('/portal/upload-documents');
+        navigate(uploadPath);
       }, 1000);
     } catch (err: any) {
       setError(err.message || 'Failed to change password');
@@ -84,6 +102,17 @@ export default function ForcedPasswordChange() {
       setIsLoading(false);
     }
   };
+
+  if (isSigningIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-accent/5 via-background to-accent/10 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Signing you in, please wait...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/5 via-background to-accent/10 flex items-center justify-center p-4">

@@ -12,6 +12,7 @@ import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { toast } from "sonner";
 import { useCreateTestimonial } from "@/hooks/useSupabase";
 import { useAuth } from "@/lib/authContext";
+import { PakistanCityCombobox } from "@/components/forms/PakistanCityCombobox";
 
 const SubmitTestimonial = () => {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ const SubmitTestimonial = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.text || !formData.packageType) {
+    if (!formData.name || !formData.text || !formData.packageType || !formData.location) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -78,8 +79,12 @@ const SubmitTestimonial = () => {
                   <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Your full name" required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Location</label>
-                  <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="e.g. Narowal, Pakistan" />
+                  <label className="text-sm font-medium text-foreground mb-1 block">City *</label>
+                  <PakistanCityCombobox
+                    value={formData.location}
+                    onValueChange={(value) => setFormData({ ...formData, location: value })}
+                    placeholder="Select your city"
+                  />
                 </div>
               </div>
 

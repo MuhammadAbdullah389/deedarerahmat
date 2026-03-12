@@ -96,15 +96,6 @@ export function SignIn() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm">
-            <p className="text-muted-foreground">
-              Don't have an account?{' '}
-              <Link to="/auth/sign-up" className="text-accent font-medium hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

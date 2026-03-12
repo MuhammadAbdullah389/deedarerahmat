@@ -20,7 +20,7 @@ interface BookingData {
 export default function DocumentUploadPortal() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [uploadingDocs, setUploadingDocs] = useState<Set<string>>(new Set());
@@ -31,6 +31,9 @@ export default function DocumentUploadPortal() {
   const { mutate: uploadDocument } = useUploadBookingDocument();
 
   useEffect(() => {
+    // Wait for auth to settle before fetching booking
+    if (authLoading) return;
+
     const fetchBooking = async () => {
       if (!bookingId) {
         setIsLoading(false);
@@ -55,7 +58,7 @@ export default function DocumentUploadPortal() {
     };
 
     fetchBooking();
-  }, [bookingId, navigate]);
+  }, [bookingId, navigate, authLoading]);
 
   const handleFileUpload = (docType: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,7 +88,8 @@ export default function DocumentUploadPortal() {
           });
         },
         onError: (err: any) => {
-          toast.error(`Failed to upload ${docType}`);
+          console.error('Document upload failed:', err);
+          toast.error(err?.message ? `Failed to upload ${docType}: ${err.message}` : `Failed to upload ${docType}`);
           setUploadingDocs(prev => {
             const next = new Set(prev);
             next.delete(docType);

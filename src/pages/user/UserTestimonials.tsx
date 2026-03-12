@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { useCreateTestimonial, useUserTestimonials } from "@/hooks/useSupabase";
 import { useAuth } from "@/lib/authContext";
+import { PakistanCityCombobox } from "@/components/forms/PakistanCityCombobox";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -25,11 +26,12 @@ const UserTestimonials = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
+  const [city, setCity] = useState(profile?.location || "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) {
-      toast.error("Please write your experience");
+    if (!text.trim() || !city) {
+      toast.error("Please select your city and write your experience");
       return;
     }
 
@@ -37,7 +39,7 @@ const UserTestimonials = () => {
       {
         user_id: user?.id || null,
         name: profile?.full_name || user?.email?.split("@")[0] || "Anonymous",
-        location: profile?.location || null,
+        location: city,
         rating,
         text,
         package_type: null,
@@ -49,6 +51,7 @@ const UserTestimonials = () => {
           toast.success("Testimonial submitted for review!");
           setText("");
           setRating(5);
+          setCity(profile?.location || "");
           setAddOpen(false);
         },
         onError: () => toast.error("Failed to submit testimonial"),
@@ -70,6 +73,14 @@ const UserTestimonials = () => {
                 <DialogTitle className="font-display">Share Your Experience</DialogTitle>
               </DialogHeader>
               <form className="space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <PakistanCityCombobox
+                    value={city}
+                    onValueChange={setCity}
+                    placeholder="Select your city"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label>Rating</Label>
                   <div className="flex gap-1">
@@ -106,7 +117,7 @@ const UserTestimonials = () => {
                       ))}
                     </div>
                     <p className="text-foreground">{t.text}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">{t.location || 'Pakistan'} • {new Date(t.created_at).toLocaleDateString()}</p>
                   </div>
                   <Badge className={statusColors[t.status]}>{t.status}</Badge>
                 </div>

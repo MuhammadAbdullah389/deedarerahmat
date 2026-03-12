@@ -11,8 +11,6 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { toast } from "sonner";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
-import { useCreateContactMessage } from "@/hooks/useSupabase";
-import { useAuth } from "@/lib/authContext";
 
 const contactItems = [
   { icon: Phone, label: "Phone", value: "+92 342 2356719", href: "tel:+923422356719" },
@@ -21,9 +19,9 @@ const contactItems = [
   { icon: Clock, label: "Office Hours", value: "Mon–Sat: 9AM – 8PM\nSun: 10AM – 4PM" },
 ];
 
+const adminWhatsAppNumber = "923422356719";
+
 const ContactUs = () => {
-  const { user } = useAuth();
-  const { mutate: createContactMessage, isPending } = useCreateContactMessage();
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -39,24 +37,23 @@ const ContactUs = () => {
       return;
     }
 
-    createContactMessage(
-      {
-        user_id: user?.id || null,
-        full_name: formData.fullName,
-        phone: formData.phone,
-        email: formData.email,
-        subject: formData.subject || null,
-        message: formData.message,
-        status: "new",
-      },
-      {
-        onSuccess: () => {
-          toast.success("Message sent! We will get back to you soon.");
-          setFormData({ fullName: "", phone: "", email: "", subject: "", message: "" });
-        },
-        onError: () => toast.error("Failed to send message. Please try again."),
-      }
-    );
+    const message = [
+      "Assalam o Alaikum!",
+      "",
+      "A new contact inquiry has been submitted:",
+      "",
+      `Name: ${formData.fullName}`,
+      `Phone: ${formData.phone}`,
+      `Email: ${formData.email}`,
+      `Subject: ${formData.subject || 'General Inquiry'}`,
+      "",
+      "Message:",
+      formData.message,
+    ].join("\n");
+
+    window.open(`https://wa.me/${adminWhatsAppNumber}?text=${encodeURIComponent(message)}`, "_blank");
+    toast.success("WhatsApp opened with your message.");
+    setFormData({ fullName: "", phone: "", email: "", subject: "", message: "" });
   };
 
   return (
@@ -143,8 +140,8 @@ const ContactUs = () => {
                   <div><Label>Email *</Label><Input type="email" required placeholder="your@email.com" className="mt-1" value={formData.email} onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))} /></div>
                   <div><Label>Subject</Label><Input placeholder="How can we help?" className="mt-1" value={formData.subject} onChange={(e) => setFormData((p) => ({ ...p, subject: e.target.value }))} /></div>
                   <div><Label>Message *</Label><Textarea required placeholder="Write your message..." className="mt-1 min-h-[120px]" value={formData.message} onChange={(e) => setFormData((p) => ({ ...p, message: e.target.value }))} /></div>
-                  <Button type="submit" variant="gold" size="lg" className="w-full gap-2 shadow-gold" disabled={isPending}>
-                    <Send className="w-5 h-5" /> Send Message
+                  <Button type="submit" variant="gold" size="lg" className="w-full gap-2 shadow-gold">
+                    <Send className="w-5 h-5" /> Send on WhatsApp
                   </Button>
                 </form>
               </div>

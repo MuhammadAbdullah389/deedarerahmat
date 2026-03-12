@@ -1,0 +1,2 @@
+[functions.provision-applicant-credentials]
+verify_jwt = false

@@ -7,7 +7,6 @@ import Index from "./pages/Index";
 import HajjPackages from "./pages/HajjPackages";
 import UmrahPackages from "./pages/UmrahPackages";
 import VisaAssistance from "./pages/VisaAssistance";
-import SubmitTestimonial from "./pages/SubmitTestimonial";
 import FAQs from "./pages/FAQs";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
@@ -37,7 +36,6 @@ const App = () => (
           <Route path="/hajj-packages" element={<HajjPackages />} />
           <Route path="/umrah-packages" element={<UmrahPackages />} />
           <Route path="/visa-assistance" element={<VisaAssistance />} />
-          <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/contact-us" element={<ContactUs />} />
@@ -64,6 +62,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <UserBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/submit-testimonial"
+            element={
+              <ProtectedRoute>
+                <UserTestimonials />
               </ProtectedRoute>
             }
           />
