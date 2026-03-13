@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Upload, CheckCircle2, Clock, X } from 'lucide-react';
+import { AlertCircle, Upload, CheckCircle2, Clock, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/authContext';
@@ -12,8 +12,10 @@ import { useRequiredDocuments, useBookingDocuments, useUploadBookingDocument } f
 
 interface BookingData {
   id: string;
-  package_type: 'hajj' | 'umrah';
+  package_type: 'hajj' | 'umrah' | 'visa';
   package_name_snapshot: string;
+  user_id?: string | null;
+  applicant_email?: string | null;
   form_data: any;
 }
 
@@ -60,6 +62,24 @@ export default function DocumentUploadPortal() {
     fetchBooking();
   }, [bookingId, navigate, authLoading]);
 
+  useEffect(() => {
+    if (authLoading || isLoading || !booking) return;
+
+    if (booking.user_id && !user) {
+      const email = booking.applicant_email || booking.form_data?.email || '';
+      const redirect = `/portal/upload-documents?booking_id=${booking.id}`;
+      navigate(`/auth/sign-in?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`, {
+        replace: true,
+      });
+      return;
+    }
+
+    if (booking.user_id && user && booking.user_id !== user.id) {
+      toast.error('This application belongs to another account. Please sign in with the correct user.');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authLoading, isLoading, booking, user, navigate]);
+
   const handleFileUpload = (docType: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -98,6 +118,27 @@ export default function DocumentUploadPortal() {
         },
       }
     );
+  };
+
+  const handleViewDocument = async (filePath: string) => {
+    if (!filePath) {
+      toast.error('Document file path is missing');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('booking-documents')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const blobUrl = URL.createObjectURL(data);
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } catch {
+      toast.error('Failed to open document');
+    }
   };
 
   const getDocumentStatus = (docType: string) => {
@@ -146,6 +187,17 @@ export default function DocumentUploadPortal() {
             We couldn't find your application. Please check the link and try again.
           </p>
           <Button onClick={() => navigate('/')}>Go Home</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (booking.user_id && !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+          <p className="mt-4 text-muted-foreground">Redirecting to login...</p>
         </div>
       </div>
     );
@@ -251,6 +303,16 @@ export default function DocumentUploadPortal() {
                         Uploaded: {new Date(uploaded.uploaded_at).toLocaleDateString()}
                       </p>
                       <p>Size: {(uploaded.file_size_bytes / 1024).toFixed(2)} KB</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 gap-2"
+                        onClick={() => handleViewDocument((uploaded as any).file_path || (uploaded as any).file_url || '')}
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Document
+                      </Button>
                     </div>
                   )}
                 </CardContent>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -13,6 +14,8 @@ const randomPassword = (length = 12) => {
   }
   return output;
 };
+
+const normalizeEmail = (value: string) => value.trim().toLowerCase();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -84,7 +87,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const email = booking.applicant_email || booking.form_data?.email;
+    const rawEmail = booking.applicant_email || booking.form_data?.email;
+    const email = rawEmail ? normalizeEmail(rawEmail) : null;
     if (!email) {
       return new Response(JSON.stringify({ error: "Applicant email is missing" }), {
         status: 400,
@@ -98,6 +102,22 @@ Deno.serve(async (req) => {
     let created = false;
 
     if (!userId) {
+      // First, try to infer existing user_id from previous bookings with the same email.
+      const { data: existingBookingUser } = await supabaseAdmin
+        .from("bookings")
+        .select("user_id")
+        .eq("applicant_email", email)
+        .not("user_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingBookingUser?.user_id) {
+        userId = existingBookingUser.user_id;
+      }
+    }
+
+    if (!userId) {
       const createdUser = await supabaseAdmin.auth.admin.createUser({
         email,
         password: tempPassword,
@@ -109,38 +129,56 @@ Deno.serve(async (req) => {
       });
 
       if (createdUser.error || !createdUser.data.user) {
-        return new Response(JSON.stringify({ error: createdUser.error?.message || "Failed to create user" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+        const message = createdUser.error?.message || "Failed to create user";
 
-      userId = createdUser.data.user.id;
-      created = true;
+        // If already registered, try to locate existing user by listing users.
+        if (message.toLowerCase().includes("already") || message.toLowerCase().includes("registered")) {
+          const listed = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+          const matched = listed.data?.users?.find((u) => normalizeEmail(u.email || "") === email);
+          if (matched?.id) {
+            userId = matched.id;
+          }
+        }
 
-      await supabaseAdmin.from("profiles").upsert(
-        [
-          {
-            id: userId,
-            full_name: fullName,
-            phone: booking.form_data?.phone || null,
-            role: "user",
-          },
-        ],
-        { onConflict: "id" },
-      );
-    } else {
-      const resetUser = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password: tempPassword,
-      });
-
-      if (resetUser.error) {
-        return new Response(JSON.stringify({ error: resetUser.error.message || "Failed to reset user password" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        if (!userId) {
+          return new Response(JSON.stringify({ error: message }), {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        userId = createdUser.data.user.id;
+        created = true;
       }
     }
+
+    const resetUser = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      email,
+      password: tempPassword,
+      user_metadata: {
+        full_name: fullName,
+        source: "booking-provision",
+      },
+    });
+
+    if (resetUser.error) {
+      return new Response(JSON.stringify({ error: resetUser.error.message || "Failed to reset user password" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    await supabaseAdmin.from("profiles").upsert(
+      [
+        {
+          id: userId,
+          full_name: fullName,
+          phone: booking.form_data?.phone || null,
+          role: "user",
+        },
+      ],
+      { onConflict: "id" },
+    );
 
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();

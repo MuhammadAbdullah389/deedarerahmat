@@ -24,7 +24,11 @@ const AdminPackages = () => {
     duration: "",
     description: "",
     featured: false,
+    maktab: "",
     nightBreakdown: "",
+    childWithoutBed: "",
+    infant: "",
+    includedText: "",
     double: "",
     triple: "",
     quad: "",
@@ -61,7 +65,11 @@ const AdminPackages = () => {
       duration: "",
       description: "",
       featured: false,
+      maktab: "",
       nightBreakdown: "",
+      childWithoutBed: "",
+      infant: "",
+      includedText: "",
       double: "",
       triple: "",
       quad: "",
@@ -129,8 +137,16 @@ const AdminPackages = () => {
         itinerary: parseItinerary(form.itineraryText),
         package_details: [
           ...linesToArray(form.packageDetailsText),
+          ...(form.type === "hajj" && form.maktab.trim() ? [`Maktab: ${form.maktab.trim()}`] : []),
           ...(form.type === "umrah" && form.nightBreakdown.trim()
             ? [`Nights Breakup: ${form.nightBreakdown.trim()}`]
+            : []),
+          ...(form.type === "umrah" && form.childWithoutBed.trim()
+            ? [`Child Without Bed: ${form.childWithoutBed.trim()} PKR`]
+            : []),
+          ...(form.type === "umrah" && form.infant.trim() ? [`Infant: ${form.infant.trim()} PKR`] : []),
+          ...(form.type === "umrah" && form.includedText.trim()
+            ? [`Included: ${form.includedText.trim()}`]
             : []),
         ],
         requirements: linesToArray(form.requirementsText),
@@ -140,7 +156,7 @@ const AdminPackages = () => {
           double: form.double ? Number(form.double) : undefined,
           triple: form.triple ? Number(form.triple) : undefined,
           quad: form.quad ? Number(form.quad) : undefined,
-          quint: form.quint ? Number(form.quint) : undefined,
+          quint: form.type === "umrah" && form.quint ? Number(form.quint) : undefined,
         },
         hotel_ids: [form.makkahHotelId, form.madinahHotelId].filter(Boolean),
       },
@@ -170,6 +186,101 @@ const AdminPackages = () => {
         onError: () => toast.error("Failed to update package"),
       }
     );
+  };
+
+  const applySampleHajj = () => {
+    setForm((p) => ({
+      ...p,
+      name: "13/14 Days Package (Maktab B)",
+      type: "hajj",
+      duration: "13/14 Days",
+      description: "Hajj package with Madina stay, Aziziya stay, and full 5-day Hajj support.",
+      featured: false,
+      maktab: "B",
+      nightBreakdown: "",
+      childWithoutBed: "",
+      infant: "",
+      includedText: "",
+      double: "1934000",
+      triple: "1874000",
+      quad: "1839000",
+      quint: "",
+      flightRoute: "ISB → MED",
+      flightDate: "28 May | 1 ZH 1446 H",
+      flightNo: "",
+      flightDeparture: "",
+      flightArrival: "",
+      returnRoute: "Makkah/Aziziya → Jeddah Airport",
+      returnDate: "10/11 June",
+      returnFlightNo: "",
+      returnDeparture: "",
+      returnArrival: "",
+      itineraryText: [
+        "4 Nights Stay in Madina|28 May – 1 June|1 ZH – 4 ZH|4 Nights",
+        "Aziziya Stay|1 June – 3/4 June|4 ZH – 6/7 ZH|2-3 Nights",
+        "5 Days Hajj|4 June – 8 June|8 ZH – 12 ZH|5 Days",
+        "Back to Aziziya|8 June – 10/11 June|12 ZH – 14/15 ZH|2-3 Nights",
+        "Departure to Jeddah Airport|10/11 June||",
+      ].join("\n"),
+      packageDetailsText: [
+        "Madina Hotel: Grand Plaza Badr Al-Maqam (3 Star – Full Board)",
+        "Aziziya Building: Behind Souq Salam, Near Electric Escalator (Jamrat)",
+        "Aziziya building near Mina",
+        "3 time daily buffet meal (double dish)",
+        "Accommodation on bed sharing basis",
+        "Triple room extra Rs 20,000 per head",
+        "Quad room extra Rs 15,000 per head",
+        "Guided Ziarat in Madinah",
+        "Ziarat by experienced Islamic scholars",
+        "Ahram included",
+      ].join("\n"),
+      requirementsText: "Passport\nCNIC\nPhotographs",
+      notesText: "USD rates: Quad 6570, Triple 6695, Double 6910",
+      overseasDiscount: "Overseas Hujjaj: Rs 300,000 per ticket",
+    }));
+  };
+
+  const applySampleUmrah = () => {
+    setForm((p) => ({
+      ...p,
+      name: "15 Days Umrah Package",
+      type: "umrah",
+      duration: "15 Days",
+      description: "Umrah package with flights, hotel stay, transport, visa, and ziarat.",
+      featured: false,
+      maktab: "",
+      nightBreakdown: "6-8-6",
+      childWithoutBed: "199000",
+      infant: "79000",
+      includedText: "Visa, Ticket, Hotel, Transport, Ziarat",
+      double: "384000",
+      triple: "332000",
+      quad: "309000",
+      quint: "292000",
+      flightRoute: "ISB – JED",
+      flightDate: "14 Jan",
+      flightNo: "Saudia SV 723",
+      flightDeparture: "17:40",
+      flightArrival: "21:35",
+      returnRoute: "JED – ISB",
+      returnDate: "28 Jan",
+      returnFlightNo: "Saudia SV 728",
+      returnDeparture: "09:25",
+      returnArrival: "16:05",
+      itineraryText: [
+        "Makkah Stay|14 Jan – 20 Jan||6 Nights",
+        "Madinah Stay|20 Jan – 28 Jan||8 Nights",
+      ].join("\n"),
+      packageDetailsText: [
+        "Makkah Hotel: Mather Al Jawar",
+        "Makkah Distance: 500 Meter",
+        "Madina Hotel: Mahad Al Madina",
+        "Madina Distance: 600–700 Meter",
+      ].join("\n"),
+      requirementsText: "Passport\nCNIC\nPhotographs",
+      notesText: "",
+      overseasDiscount: "",
+    }));
   };
 
   const renderTable = (packages: PackageType[] | undefined, isLoading: boolean) => (
@@ -233,6 +344,10 @@ const AdminPackages = () => {
                 <DialogTitle className="font-display">Add New Package</DialogTitle>
               </DialogHeader>
               <form className="space-y-4" onSubmit={handleCreatePackage}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button type="button" variant="outline" onClick={applySampleHajj}>Load Sample Hajj Data</Button>
+                  <Button type="button" variant="outline" onClick={applySampleUmrah}>Load Sample Umrah Data</Button>
+                </div>
                 <div className="space-y-2">
                   <Label>Package Name</Label>
                   <Input placeholder="e.g. Premium Hajj Package" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
@@ -266,14 +381,18 @@ const AdminPackages = () => {
                   <div className="space-y-2"><Label>Price (Double)</Label><Input type="number" placeholder="0" value={form.double} onChange={(e) => setForm((p) => ({ ...p, double: e.target.value }))} /></div>
                   <div className="space-y-2"><Label>Price (Triple)</Label><Input type="number" placeholder="0" value={form.triple} onChange={(e) => setForm((p) => ({ ...p, triple: e.target.value }))} /></div>
                   <div className="space-y-2"><Label>Price (Quad)</Label><Input type="number" placeholder="0" value={form.quad} onChange={(e) => setForm((p) => ({ ...p, quad: e.target.value }))} /></div>
-                  <div className="space-y-2"><Label>Price (Quint)</Label><Input type="number" placeholder="0" value={form.quint} onChange={(e) => setForm((p) => ({ ...p, quint: e.target.value }))} /></div>
+                  {form.type === "umrah" && (
+                    <div className="space-y-2"><Label>Price (Quint)</Label><Input type="number" placeholder="0" value={form.quint} onChange={(e) => setForm((p) => ({ ...p, quint: e.target.value }))} /></div>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Makkah Hotel</Label>
+                  <Label>{form.type === "hajj" ? "Aziziya Building/Hotel" : "Makkah Hotel"}</Label>
                   <Select value={form.makkahHotelId} onValueChange={(v) => setForm((p) => ({ ...p, makkahHotelId: v }))}>
                     <SelectTrigger><SelectValue placeholder="Select Hotel" /></SelectTrigger>
                     <SelectContent>
-                      {(hotels || []).filter(h => h.city === 'Makkah').map(h => (
+                      {(hotels || [])
+                        .filter((h) => (form.type === "hajj" ? h.city === 'Aziziya' : h.city === 'Makkah'))
+                        .map(h => (
                         <SelectItem key={h.id} value={h.id}>{h.name} ({h.distance_meters}m)</SelectItem>
                       ))}
                     </SelectContent>
@@ -310,7 +429,16 @@ const AdminPackages = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Itinerary (one per line: label|dates|islamicDate|duration)</Label>
-                  <Textarea rows={5} placeholder="Flight|23 May|25 ZQ 1446 H|ISB → MED" value={form.itineraryText} onChange={(e) => setForm((p) => ({ ...p, itineraryText: e.target.value }))} />
+                  <Textarea
+                    rows={5}
+                    placeholder={
+                      form.type === "hajj"
+                        ? "4 Nights Stay in Madina|28 May – 1 June|1-5 ZH|4 Nights\nAziziya Stay|1 June – 3/4 June|5-7 ZH|2-3 Nights\n5 Days Hajj|4 June – 8 June|8-12 ZH|5 Days"
+                        : "Makkah Stay|14 Jan – 20 Jan||6 Nights\nMadinah Stay|20 Jan – 28 Jan||8 Nights"
+                    }
+                    value={form.itineraryText}
+                    onChange={(e) => setForm((p) => ({ ...p, itineraryText: e.target.value }))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Package Details (one per line)</Label>
@@ -325,15 +453,41 @@ const AdminPackages = () => {
                   <Textarea rows={3} value={form.notesText} onChange={(e) => setForm((p) => ({ ...p, notesText: e.target.value }))} />
                 </div>
                 {form.type === "hajj" ? (
-                  <div className="space-y-2">
-                    <Label>Overseas Discount</Label>
-                    <Input placeholder="Less Rs. 300,000 for overseas Hujjaj" value={form.overseasDiscount} onChange={(e) => setForm((p) => ({ ...p, overseasDiscount: e.target.value }))} />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label>Maktab</Label>
+                      <Input placeholder="e.g. B" value={form.maktab} onChange={(e) => setForm((p) => ({ ...p, maktab: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Overseas Discount</Label>
+                      <Input placeholder="e.g. Overseas Hujjaj: Rs 300,000 per ticket" value={form.overseasDiscount} onChange={(e) => setForm((p) => ({ ...p, overseasDiscount: e.target.value }))} />
+                    </div>
+                  </>
                 ) : (
-                  <div className="space-y-2">
-                    <Label>Nights Breakdown</Label>
-                    <Input placeholder="e.g. 6 - 8 - 6" value={form.nightBreakdown} onChange={(e) => setForm((p) => ({ ...p, nightBreakdown: e.target.value }))} />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label>Nights Breakdown</Label>
+                      <Input placeholder="e.g. 6-8-6" value={form.nightBreakdown} onChange={(e) => setForm((p) => ({ ...p, nightBreakdown: e.target.value }))} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Child Without Bed (PKR)</Label>
+                        <Input type="number" placeholder="e.g. 199000" value={form.childWithoutBed} onChange={(e) => setForm((p) => ({ ...p, childWithoutBed: e.target.value }))} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Infant (PKR)</Label>
+                        <Input type="number" placeholder="e.g. 79000" value={form.infant} onChange={(e) => setForm((p) => ({ ...p, infant: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Included Services</Label>
+                      <Input
+                        placeholder="e.g. Visa, Ticket, Hotel, Transport, Ziarat"
+                        value={form.includedText}
+                        onChange={(e) => setForm((p) => ({ ...p, includedText: e.target.value }))}
+                      />
+                    </div>
+                  </>
                 )}
                 <Button type="submit" variant="gold" className="w-full" disabled={isCreating}>Create Package</Button>
               </form>

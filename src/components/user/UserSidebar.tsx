@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, MessageSquare, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, ClipboardList, MessageSquare, ArrowLeft, PlusCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/authContext";
@@ -11,6 +11,7 @@ import {
 const items = [
   { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
   { title: "My Bookings", url: "/dashboard/bookings", icon: ClipboardList },
+  { title: "Apply Again", url: "/dashboard/apply", icon: PlusCircle },
   { title: "My Testimonials", url: "/dashboard/testimonials", icon: MessageSquare },
 ];
 

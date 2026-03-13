@@ -101,7 +101,7 @@ export interface ContactMessage {
 export interface BookingDocument {
   id: string;
   booking_id: string;
-  document_type: 'passport' | 'cnic' | 'photo' | 'vaccination_certificate' | 'bank_statement';
+  document_type: 'passport' | 'cnic' | 'photo' | 'vaccination_certificate' | 'bank_statement' | 'travel_itinerary' | 'hotel_booking';
   file_path: string;
   file_url?: string | null;
   file_name?: string | null;
@@ -412,7 +412,18 @@ export function useProvisionApplicantCredentials() {
         body: { bookingId },
       });
 
-      if (error) throw error;
+      if (error) {
+        const maybeResponse = (error as any)?.context;
+        if (maybeResponse && typeof maybeResponse.json === 'function') {
+          try {
+            const body = await maybeResponse.json();
+            throw new Error(body?.error || body?.message || error.message || 'Provision failed');
+          } catch {
+            throw new Error((error as any)?.message || 'Provision failed');
+          }
+        }
+        throw new Error((error as any)?.message || 'Provision failed');
+      }
       if (!data?.success) {
         throw new Error(data?.error || 'Failed to provision credentials');
       }
@@ -423,6 +434,35 @@ export function useProvisionApplicantCredentials() {
         email: string;
         userId: string;
         tempPassword: string;
+      };
+    },
+  });
+}
+
+export function useCheckAccountByEmail() {
+  return useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+      const { data, error } = await supabase.functions.invoke('check-account-by-email', {
+        body: { email },
+      });
+
+      if (error) {
+        const maybeResponse = (error as any)?.context;
+        if (maybeResponse && typeof maybeResponse.json === 'function') {
+          try {
+            const body = await maybeResponse.json();
+            throw new Error(body?.error || body?.message || error.message || 'Account check failed');
+          } catch {
+            throw new Error((error as any)?.message || 'Account check failed');
+          }
+        }
+
+        throw new Error((error as any)?.message || 'Account check failed');
+      }
+
+      return (data || { exists: false }) as {
+        exists: boolean;
+        email: string;
       };
     },
   });
@@ -739,7 +779,7 @@ export function useAllContactMessages() {
 
 // ========== DOCUMENT MANAGEMENT ==========
 
-const FALLBACK_REQUIRED_DOCS: Record<'hajj' | 'umrah', RequiredDocument[]> = {
+const FALLBACK_REQUIRED_DOCS: Record<'hajj' | 'umrah' | 'visa', RequiredDocument[]> = {
   hajj: [
     { id: 'f1', document_type: 'passport', display_name: 'Passport', description: 'Clear copy of passport (ID page + expiry page)', created_at: '' },
     { id: 'f2', document_type: 'cnic', display_name: 'CNIC', description: 'Clear copy of CNIC (front and back)', created_at: '' },
@@ -752,13 +792,24 @@ const FALLBACK_REQUIRED_DOCS: Record<'hajj' | 'umrah', RequiredDocument[]> = {
     { id: 'f3', document_type: 'photo', display_name: 'Passport Size Photo', description: '4x6 passport size color photograph', created_at: '' },
     { id: 'f4', document_type: 'bank_statement', display_name: 'Bank Statement', description: 'Bank statement showing funds for the trip (last 6 months)', created_at: '' },
   ],
+  visa: [
+    { id: 'f1', document_type: 'passport', display_name: 'Passport Copy', description: 'Clear copy of passport ID + expiry page', created_at: '' },
+    { id: 'f2', document_type: 'photo', display_name: 'Photograph', description: 'Recent passport-size photo with white background', created_at: '' },
+    { id: 'f3', document_type: 'bank_statement', display_name: 'Bank Statement', description: 'Latest bank statement as required by embassy', created_at: '' },
+    { id: 'f4', document_type: 'travel_itinerary', display_name: 'Travel Itinerary', description: 'Tentative travel plan / ticket reservation', created_at: '' },
+    { id: 'f5', document_type: 'hotel_booking', display_name: 'Hotel Booking', description: 'Proof of accommodation / hotel reservation', created_at: '' },
+  ],
 };
 
-export function useRequiredDocuments(packageType: 'hajj' | 'umrah') {
+export function useRequiredDocuments(packageType: 'hajj' | 'umrah' | 'visa') {
   return useQuery({
     queryKey: ['required-documents', packageType],
     queryFn: async () => {
-      const tableName = packageType === 'hajj' ? 'hajj_required_documents' : 'umrah_required_documents';
+      const tableName = packageType === 'hajj'
+        ? 'hajj_required_documents'
+        : packageType === 'umrah'
+          ? 'umrah_required_documents'
+          : 'visa_required_documents';
       const { data, error } = await supabase
         .from(tableName)
         .select('*')

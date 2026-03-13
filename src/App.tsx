@@ -24,6 +24,7 @@ import AdminDocumentReview from "./pages/admin/AdminDocumentReview";
 import UserOverview from "./pages/user/UserOverview";
 import UserBookings from "./pages/user/UserBookings";
 import UserTestimonials from "./pages/user/UserTestimonials";
+import UserApply from "./pages/user/UserApply";
 
 const App = () => (
   <TooltipProvider>
@@ -62,6 +63,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <UserBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/apply"
+            element={
+              <ProtectedRoute>
+                <UserApply />
               </ProtectedRoute>
             }
           />

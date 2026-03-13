@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -17,18 +18,39 @@ import {
 } from '@/components/ui/dialog';
 import { CheckCircle2, XCircle, Clock, Download, MessageSquare, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { useGetAllBookingsWithDocuments, useUpdateBookingStatus } from '@/hooks/useSupabase';
+import { useGetAllBookingsWithDocuments, useUpdateBookingStatus, useRequiredDocuments } from '@/hooks/useSupabase';
 import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdminDocumentReview() {
-  const { data: bookings = [], isLoading } = useGetAllBookingsWithDocuments();
+  const { data: bookings = [], isLoading, refetch } = useGetAllBookingsWithDocuments();
   const { mutate: updateBookingStatus } = useUpdateBookingStatus();
+  const queryClient = useQueryClient();
+  const { data: hajjRequiredDocs = [] } = useRequiredDocuments('hajj');
+  const { data: umrahRequiredDocs = [] } = useRequiredDocuments('umrah');
+  const { data: visaRequiredDocs = [] } = useRequiredDocuments('visa');
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
+  const [rejectedDocIds, setRejectedDocIds] = useState<string[]>([]);
 
-  const normalizePhone = (phone?: string | null) => (phone || '').replace(/[^\d]/g, '');
+  const normalizePhone = (phone?: string | null) => {
+    if (!phone) return '';
+    let digits = phone.replace(/[^\d]/g, '');
+
+    if (digits.startsWith('00')) {
+      digits = digits.slice(2);
+    }
+
+    if (digits.startsWith('0') && digits.length === 11) {
+      digits = `92${digits.slice(1)}`;
+    } else if (digits.startsWith('3') && digits.length === 10) {
+      digits = `92${digits}`;
+    }
+
+    return digits;
+  };
 
   const openWhatsApp = (phoneRaw: string | null | undefined, message: string) => {
     const phone = normalizePhone(phoneRaw);
@@ -62,9 +84,24 @@ export default function AdminDocumentReview() {
 
   const resolveDocPath = (doc: any) => doc?.file_path || doc?.file_url || '';
 
+  const requiredDocCounts = useMemo(() => ({
+    hajj: hajjRequiredDocs.length,
+    umrah: umrahRequiredDocs.length,
+    visa: visaRequiredDocs.length,
+  }), [hajjRequiredDocs, umrahRequiredDocs, visaRequiredDocs]);
+
   const bookingsWithDocs = useMemo(
-    () => bookings.filter((b: any) => (b.booking_documents || []).length > 0),
-    [bookings]
+    () => bookings.filter((b: any) => {
+      const docs = b.booking_documents || [];
+      if (docs.length === 0) return false;
+      const required = requiredDocCounts[b.package_type as 'hajj' | 'umrah' | 'visa'] || 0;
+      // A doc counts as submitted if the user actually uploaded a file (any status except 'requested')
+      const submittedCount = docs.filter((d: any) =>
+        ['pending', 'uploaded', 'approved', 'rejected'].includes(d.status)
+      ).length;
+      return required === 0 || submittedCount >= required;
+    }),
+    [bookings, requiredDocCounts]
   );
 
   const getBookingReviewState = (booking: any) => {
@@ -73,8 +110,8 @@ export default function AdminDocumentReview() {
     const hasRejected = docs.some((doc: any) => doc.status === 'rejected');
     const allApproved = docs.length > 0 && docs.every((doc: any) => doc.status === 'approved');
 
-    if (hasPending) return 'pending';
     if (hasRejected) return 'rejected';
+    if (hasPending) return 'pending';
     if (allApproved) return 'approved';
     return 'pending';
   };
@@ -96,10 +133,12 @@ export default function AdminDocumentReview() {
   const rejectedBookings = bookingSummaries.filter((booking: any) => booking.reviewState === 'rejected');
 
   const selectedBooking = bookingSummaries.find((booking: any) => booking.id === selectedBookingId) || null;
+  const isAlreadyApproved = selectedBooking?.reviewState === 'approved';
 
   const openReviewDialog = (bookingId: string) => {
     setSelectedBookingId(bookingId);
     setAdminNotes('');
+    setRejectedDocIds([]);
     setIsDialogOpen(true);
   };
 
@@ -107,12 +146,24 @@ export default function AdminDocumentReview() {
     setIsDialogOpen(false);
     setSelectedBookingId(null);
     setAdminNotes('');
+    setRejectedDocIds([]);
+  };
+
+  const toggleRejectedDoc = (docId: string, checked: boolean) => {
+    setRejectedDocIds((prev) => {
+      if (checked) return Array.from(new Set([...prev, docId]));
+      return prev.filter((id) => id !== docId);
+    });
   };
 
   const submitBookingReview = async (action: 'approve' | 'reject') => {
     if (!selectedBooking) return;
     if (action === 'reject' && !adminNotes.trim()) {
       toast.error('Please enter a rejection reason');
+      return;
+    }
+    if (action === 'reject' && rejectedDocIds.length === 0) {
+      toast.error('Please select at least one document to reject');
       return;
     }
 
@@ -122,17 +173,51 @@ export default function AdminDocumentReview() {
       const docIds = (selectedBooking.booking_documents || []).map((doc: any) => doc.id);
       const applicantPhone = selectedBooking?.form_data?.phone || selectedBooking?.applicant_phone;
       const uploadLink = `${window.location.origin}/portal/upload-documents?booking_id=${selectedBooking.id}`;
+      const applicantEmail = selectedBooking?.applicant_email || selectedBooking?.form_data?.email || '';
+      const signInLink = `${window.location.origin}/auth/sign-in?email=${encodeURIComponent(applicantEmail)}&redirect=${encodeURIComponent(`/portal/upload-documents?booking_id=${selectedBooking.id}`)}`;
+      const isExistingPortalUser = Boolean(selectedBooking?.user_id);
 
-      const { error: docsError } = await supabase
-        .from('booking_documents')
-        .update({
-          status: action === 'approve' ? 'approved' : 'rejected',
-          admin_notes: action === 'reject' ? adminNotes.trim() : null,
-          updated_at: new Date().toISOString(),
-        })
-        .in('id', docIds);
+      if (action === 'approve') {
+        const { error: docsError } = await supabase
+          .from('booking_documents')
+          .update({
+            status: 'approved',
+            admin_notes: null,
+            updated_at: new Date().toISOString(),
+          })
+          .in('id', docIds);
 
-      if (docsError) throw docsError;
+        if (docsError) throw docsError;
+      } else {
+        const { error: rejectError } = await supabase
+          .from('booking_documents')
+          .update({
+            status: 'rejected',
+            admin_notes: adminNotes.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .in('id', rejectedDocIds);
+
+        if (rejectError) throw rejectError;
+
+        // Approve all docs that were NOT selected for rejection
+        const approvedIds = (selectedBooking.booking_documents || [])
+          .map((doc: any) => doc.id)
+          .filter((id: string) => !rejectedDocIds.includes(id));
+
+        if (approvedIds.length > 0) {
+          const { error: approveRestError } = await supabase
+            .from('booking_documents')
+            .update({
+              status: 'approved',
+              admin_notes: null,
+              updated_at: new Date().toISOString(),
+            })
+            .in('id', approvedIds);
+
+          if (approveRestError) throw approveRestError;
+        }
+      }
 
       if (action === 'approve') {
         await new Promise<void>((resolve, reject) => {
@@ -160,23 +245,55 @@ export default function AdminDocumentReview() {
         openWhatsApp(applicantPhone, approvedMsg);
         toast.success('Application approved and moved to visa stage');
       } else {
-        const rejectionMsg = [
-          `Assalam o Alaikum! 🕌`,
-          ``,
-          `Your documents for application *${selectedBooking.booking_code}* need correction before visa processing.`,
-          ``,
-          `❌ *Reason:*`,
-          `${adminNotes.trim()}`,
-          ``,
-          `Please upload the corrected documents here:`,
-          `${uploadLink}`,
-          ``,
-          `JazakAllah Khair 🤲`,
-        ].join('\n');
+        const { error: bookingNoteError } = await supabase
+          .from('bookings')
+          .update({
+            admin_notes: adminNotes.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', selectedBooking.id);
+
+        if (bookingNoteError) throw bookingNoteError;
+
+        const rejectionMsg = isExistingPortalUser
+          ? [
+              `Assalam o Alaikum! 🕌`,
+              ``,
+              `Your documents for application *${selectedBooking.booking_code}* need correction before further processing.`,
+              ``,
+              `❌ *Reason:*`,
+              `${adminNotes.trim()}`,
+              ``,
+              `Please log in to your existing portal account using your password and email below:`,
+              `Email: ${applicantEmail}`,
+              ``,
+              `Then re-upload the requested documents here:`,
+              `${signInLink}`,
+              ``,
+              `JazakAllah Khair 🤲`,
+            ].join('\n')
+          : [
+              `Assalam o Alaikum! 🕌`,
+              ``,
+              `Your documents for application *${selectedBooking.booking_code}* need correction before further processing.`,
+              ``,
+              `❌ *Reason:*`,
+              `${adminNotes.trim()}`,
+              ``,
+              `Please re-upload the requested documents here:`,
+              `${uploadLink}`,
+              ``,
+              `JazakAllah Khair 🤲`,
+            ].join('\n');
 
         openWhatsApp(applicantPhone, rejectionMsg);
-        toast.success('Application rejected and applicant notified');
+        toast.success('Re-upload requested and applicant notified');
       }
+
+      await queryClient.invalidateQueries({ queryKey: ['bookings-with-documents'] });
+      await queryClient.invalidateQueries({ queryKey: ['all-bookings'] });
+      await queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      await refetch();
 
       closeReviewDialog();
     } catch (error: any) {
@@ -448,7 +565,9 @@ export default function AdminDocumentReview() {
                 {selectedBooking ? `Review Documents — ${selectedBooking.booking_code}` : 'Review Documents'}
               </DialogTitle>
               <DialogDescription>
-                Review all uploaded documents for this application, then approve or reject the application in one action.
+                {isAlreadyApproved
+                  ? 'All documents for this application are already approved. You can only view the uploaded files.'
+                  : 'Review all uploaded documents for this application, then approve or reject the application in one action.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -470,15 +589,35 @@ export default function AdminDocumentReview() {
                 </div>
 
                 <div className="space-y-3">
-                  {selectedBooking.booking_documents.map((doc: any) => (
-                    <Card key={doc.id} className={`border ${getStatusColor(doc.status)}`}>
+                  {selectedBooking.booking_documents.map((doc: any) => {
+                    const isMarkedForRejection = rejectedDocIds.includes(doc.id);
+                    const someRejected = rejectedDocIds.length > 0;
+                    // If admin is in the process of rejecting some docs, unchosen docs should visually appear approved
+                    const effectiveStatus = !isAlreadyApproved && someRejected && !isMarkedForRejection
+                      ? 'approved'
+                      : doc.status;
+                    return (
+                    <Card key={doc.id} className={`border ${getStatusColor(effectiveStatus)}`}>
                       <CardContent className="pt-5 space-y-3">
+                        {!isAlreadyApproved && (
+                          <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+                            <Checkbox
+                              id={`reject-doc-${doc.id}`}
+                              checked={isMarkedForRejection}
+                              onCheckedChange={(checked) => toggleRejectedDoc(doc.id, Boolean(checked))}
+                            />
+                            <label htmlFor={`reject-doc-${doc.id}`} className="text-sm text-muted-foreground cursor-pointer">
+                              Mark this document as rejected
+                            </label>
+                          </div>
+                        )}
+
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              {getStatusIcon(doc.status)}
+                              {getStatusIcon(effectiveStatus)}
                               <p className="font-semibold capitalize">{doc.document_type.replace(/_/g, ' ')}</p>
-                              <Badge variant="outline" className="capitalize">{doc.status}</Badge>
+                              <Badge variant="outline" className="capitalize">{effectiveStatus}</Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">
                               Uploaded {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : '—'}
@@ -500,36 +639,49 @@ export default function AdminDocumentReview() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <Textarea
-                  placeholder="Write rejection reason here if you want to reject this application..."
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  className="min-h-28"
-                />
+                {!isAlreadyApproved && (
+                  <Textarea
+                    placeholder="Write rejection reason here if you want to reject this application..."
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    className="min-h-28"
+                  />
+                )}
+
+                {!isAlreadyApproved && (
+                  <p className="text-xs text-muted-foreground">
+                    Selected for rejection: {rejectedDocIds.length} document(s). Only selected documents will be marked rejected.
+                  </p>
+                )}
 
                 <DialogFooter className="gap-2 sm:gap-0">
                   <Button type="button" variant="outline" onClick={closeReviewDialog} disabled={isSubmitting}>
                     Close
                   </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => submitBookingReview('reject')}
-                    disabled={isSubmitting || !adminNotes.trim()}
-                  >
-                    {isSubmitting ? 'Saving...' : 'Reject Application'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="gold"
-                    onClick={() => submitBookingReview('approve')}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Saving...' : 'Approve Application'}
-                  </Button>
+                  {!isAlreadyApproved && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => submitBookingReview('reject')}
+                        disabled={isSubmitting || !adminNotes.trim() || rejectedDocIds.length === 0}
+                      >
+                        {isSubmitting ? 'Saving...' : 'Reject Docs'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="gold"
+                        onClick={() => submitBookingReview('approve')}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Saving...' : 'Approve Docs'}
+                      </Button>
+                    </>
+                  )}
                 </DialogFooter>
               </div>
             )}

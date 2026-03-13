@@ -7,17 +7,26 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, CheckCircle, Clock, FileText, Upload, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
-import { useUserBookings, useBookingDocuments } from "@/hooks/useSupabase";
+import { useUserBookings, useBookingDocuments, useRequiredDocuments, type Booking } from "@/hooks/useSupabase";
 
 // Per-booking alert: checks uploaded docs and shows banner if action needed
-function DocUploadAlert({ booking }: { booking: { id: string; booking_code: string; package_name_snapshot: string } }) {
+function DocUploadAlert({ booking }: { booking: Pick<Booking, 'id' | 'booking_code' | 'package_name_snapshot' | 'package_type'> }) {
   const navigate = useNavigate();
   const { data: uploadedDocs = [] } = useBookingDocuments(booking.id);
+  const packageType = booking.package_type === "visa" ? "visa" : booking.package_type === "umrah" ? "umrah" : "hajj";
+  const { data: requiredDocs = [] } = useRequiredDocuments(packageType);
 
   const hasRejected = uploadedDocs.some(d => d.status === 'rejected');
-  const hasNone = uploadedDocs.length === 0;
+  const requiredTypes = requiredDocs.map((d) => d.document_type);
+  const uploadedNonRejectedTypes = new Set(
+    uploadedDocs
+      .filter((d) => d.status !== 'rejected')
+      .map((d) => d.document_type)
+  );
+  const missingCount = requiredTypes.filter((t) => !uploadedNonRejectedTypes.has(t)).length;
+  const uploadedCount = Math.max(requiredTypes.length - missingCount, 0);
 
-  if (!hasNone && !hasRejected) return null;
+  if (!hasRejected && missingCount <= 0) return null;
 
   return (
     <Alert className="border-amber-300 bg-amber-50">
@@ -29,7 +38,7 @@ function DocUploadAlert({ booking }: { booking: { id: string; booking_code: stri
         <span className="flex-1">
           {hasRejected
             ? `One or more documents for application ${booking.booking_code} (${booking.package_name_snapshot}) were rejected. Please re-upload them.`
-            : `Your application ${booking.booking_code} (${booking.package_name_snapshot}) is waiting for documents. Please upload them to proceed.`}
+            : `Your application ${booking.booking_code} (${booking.package_name_snapshot}) is waiting for documents. Uploaded ${uploadedCount}/${requiredTypes.length}. Please upload remaining documents to proceed.`}
         </span>
         <Button
           size="sm"
@@ -71,7 +80,12 @@ const UserOverview = () => {
   return (
     <UserLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">Welcome Back!</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="font-display text-2xl font-bold text-foreground">Welcome Back!</h1>
+          <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate('/dashboard/apply')}>
+            Apply Again
+          </Button>
+        </div>
 
         {/* Document upload notifications */}
         {!isLoading && docPendingBookings.map(b => (

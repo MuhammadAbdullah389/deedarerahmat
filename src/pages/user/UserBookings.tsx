@@ -40,7 +40,12 @@ const UserBookings = () => {
   return (
     <UserLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">My Bookings</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="font-display text-2xl font-bold text-foreground">My Bookings</h1>
+          <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate('/dashboard/apply')}>
+            Apply Again
+          </Button>
+        </div>
 
         <div className="grid gap-4">
           {isLoading

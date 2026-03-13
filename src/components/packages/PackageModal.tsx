@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Check, Clock, Building, Star, Phone, Plane, Calendar, AlertTriangle, FileText, ArrowLeft } from "lucide-react";
 import HajjRegistrationForm from "@/components/forms/HajjRegistrationForm";
 import UmrahRegistrationForm from "@/components/forms/UmrahRegistrationForm";
+import { useAuth } from "@/lib/authContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 interface PackageModalProps {
   pkg: PackageType | null;
   open: boolean;
   onClose: () => void;
+  portalMode?: boolean;
 }
 
 const sharingLabels: Record<string, string> = {
@@ -19,10 +23,12 @@ const sharingLabels: Record<string, string> = {
   quint: 'Quint Sharing',
 };
 
-const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
+const PackageModal = ({ pkg, open, onClose, portalMode = false }: PackageModalProps) => {
   const [step, setStep] = useState<'details' | 'sharing' | 'form'>('details');
   const [selectedSharing, setSelectedSharing] = useState<string>('');
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const buildWhatsAppUrl = (priceText: string, hotelText: string) => {
     const message = `Assalam o Alaikum,\n\nI am interested in the following package:\n\nPackage Name: ${pkg?.name || ''}\nPrice: ${priceText}\nDuration: ${pkg?.duration || ''}\nHotel: ${hotelText}\n\nPlease share more details.`;
@@ -132,18 +138,58 @@ const PackageModal = ({ pkg, open, onClose }: PackageModalProps) => {
               Apply for {pkg.name}
             </DialogTitle>
           </DialogHeader>
-          {pkg.type === 'hajj' ? (
+          {!user && !portalMode && (
+            <Alert className="mt-4 border-blue-200 bg-blue-50">
+              <AlertDescription className="text-blue-800 flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="flex-1">
+                  Already have an applicant account? Log in first so this application stays linked to your existing portal.
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleClose();
+                    navigate('/auth/sign-in');
+                  }}
+                >
+                  Login First
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          {user && !portalMode ? (
+            <div className="space-y-4 mt-4">
+              <Alert className="border-blue-200 bg-blue-50">
+                <AlertDescription className="text-blue-800">
+                  You already have a portal account. Please submit your next application from the dashboard so it stays linked to your existing user account.
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep('sharing')} className="gap-2">
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </Button>
+                <Button variant="gold" className="flex-1" onClick={() => { handleClose(); navigate('/dashboard/apply'); }}>
+                  Go to Dashboard Apply
+                </Button>
+              </div>
+            </div>
+          ) : pkg.type === 'hajj' ? (
             <HajjRegistrationForm
+              packageId={pkg.id}
               packageName={pkg.name}
               sharingType={selectedSharing}
               amountPkr={selectedPrice}
+              portalMode={portalMode}
               onBack={() => setStep('sharing')}
             />
           ) : (
             <UmrahRegistrationForm
+              packageId={pkg.id}
               packageName={pkg.name}
               sharingType={selectedSharing}
               amountPkr={selectedPrice}
+              portalMode={portalMode}
               onBack={() => setStep('sharing')}
             />
           )}

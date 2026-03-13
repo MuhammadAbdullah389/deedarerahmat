@@ -11,13 +11,15 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import visaImage from "@/assets/visa-assistance.jpg";
 import { toast } from "sonner";
-import { useCreateVisaInquiry } from "@/hooks/useSupabase";
+import { useCreateBooking } from "@/hooks/useSupabase";
 import { useAuth } from "@/lib/authContext";
 
 const visaCountries = [
   "Saudi Arabia", "Turkey", "Malaysia", "Thailand", "UAE", "Iran", "Iraq",
   "United Kingdom", "United States", "Canada", "Australia", "China", "Japan",
 ];
+
+const visaTypes = ["tourist", "visit", "student", "work", "business"] as const;
 
 const visaRequirements = [
   { icon: FileText, title: "Valid Passport", desc: "Passport valid for at least 6 months with 2+ blank pages" },
@@ -37,36 +39,62 @@ const fascinations = [
 
 const VisaAssistance = () => {
   const { user } = useAuth();
-  const { mutate: createVisaInquiry, isPending } = useCreateVisaInquiry();
+  const { mutate: createBooking, isPending } = useCreateBooking();
   const [formData, setFormData] = useState({
-    name: "", phone: "", email: "", country: "", passportNo: "", travelDate: "", message: "",
+    name: "",
+    phone: "",
+    email: "",
+    country: "",
+    visaType: "",
+    travelDuration: "",
+    passportNo: "",
+    travelDate: "",
+    message: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.country) {
+    if (!formData.name || !formData.phone || !formData.country || !formData.visaType) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    createVisaInquiry(
+    createBooking(
       {
         user_id: user?.id || null,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email || null,
-        country: formData.country,
-        passport_no: formData.passportNo || null,
+        package_id: null,
+        package_name_snapshot: `${formData.visaType.toUpperCase()} Visa - ${formData.country}`,
+        package_type: 'visa',
+        sharing_type: null,
+        amount_pkr: null,
+        status: 'pending',
         travel_date: formData.travelDate || null,
-        message: formData.message || null,
-        status: "new",
+        applicant_email: (formData.email || user?.email || null),
+        applicant_phone: (formData.phone || null),
+        temp_password_token: null,
+        temp_password_expires_at: null,
+        password_reset_required: false,
+        admin_notes: null,
+        form_data: {
+          fullName: formData.name,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email || user?.email || null,
+          country: formData.country,
+          visaType: formData.visaType,
+          travelDuration: formData.travelDuration || null,
+          passportNo: formData.passportNo || null,
+          travelDate: formData.travelDate || null,
+          message: formData.message || null,
+          source: user ? 'portal_visa_request' : 'public_visa_request',
+        },
       },
       {
         onSuccess: () => {
-          toast.success("Your visa inquiry has been submitted! We'll contact you shortly.");
-          setFormData({ name: "", phone: "", email: "", country: "", passportNo: "", travelDate: "", message: "" });
+          toast.success("Your visa request has been submitted. Admin will review and send required document checklist.");
+          setFormData({ name: "", phone: "", email: "", country: "", visaType: "", travelDuration: "", passportNo: "", travelDate: "", message: "" });
         },
-        onError: () => toast.error("Failed to submit inquiry. Please try again."),
+        onError: (error: any) => toast.error(error?.message || "Failed to submit request. Please try again."),
       }
     );
   };
@@ -151,39 +179,50 @@ const VisaAssistance = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <form onSubmit={handleSubmit} className="glass-card rounded-xl p-8 shadow-lg space-y-5">
+            <form onSubmit={handleSubmit} className="glass-card rounded-xl p-8 shadow-lg space-y-5 [&_input]:text-foreground [&_input]:placeholder:text-muted-foreground [&_input]:bg-background [&_textarea]:text-foreground [&_textarea]:placeholder:text-muted-foreground [&_textarea]:bg-background">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Full Name *</label>
-                  <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Your full name" required />
+                  <Input className="text-foreground" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Your full name" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Phone Number *</label>
-                  <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+92 300 1234567" required />
+                  <Input className="text-foreground" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+92 300 1234567" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
-                  <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="your@email.com" />
+                  <Input className="text-foreground" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="your@email.com" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Country *</label>
                   <Select value={formData.country} onValueChange={(v) => setFormData({ ...formData, country: v })}>
-                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                    <SelectTrigger className="text-foreground bg-background"><SelectValue placeholder="Select country" /></SelectTrigger>
                     <SelectContent>{visaCountries.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
                   </Select>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Visa Type *</label>
+                  <Select value={formData.visaType} onValueChange={(v) => setFormData({ ...formData, visaType: v })}>
+                    <SelectTrigger className="text-foreground bg-background"><SelectValue placeholder="Select visa type" /></SelectTrigger>
+                    <SelectContent>{visaTypes.map((vt) => (<SelectItem key={vt} value={vt}>{vt.charAt(0).toUpperCase() + vt.slice(1)}</SelectItem>))}</SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Passport Number</label>
-                  <Input value={formData.passportNo} onChange={(e) => setFormData({ ...formData, passportNo: e.target.value })} placeholder="AB1234567" />
+                  <Input className="text-foreground" value={formData.passportNo} onChange={(e) => setFormData({ ...formData, passportNo: e.target.value })} placeholder="AB1234567" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Expected Travel Date</label>
-                  <Input type="date" value={formData.travelDate} onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })} />
+                  <Input className="text-foreground" type="date" value={formData.travelDate} onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-foreground mb-1 block">Expected Stay Duration</label>
+                  <Input className="text-foreground" value={formData.travelDuration} onChange={(e) => setFormData({ ...formData, travelDuration: e.target.value })} placeholder="e.g. 2 weeks" />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">Additional Message</label>
-                <Textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Any specific requirements or questions..." rows={4} />
+                <Textarea className="text-foreground" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Any specific requirements or questions..." rows={4} />
               </div>
               <Button type="submit" variant="gold" size="lg" className="w-full gap-2 text-base" disabled={isPending}>
                 <Send className="w-5 h-5" /> Submit Visa Inquiry

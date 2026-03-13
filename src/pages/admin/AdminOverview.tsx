@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, TrendingUp, CheckCircle, Clock } from "lucide-react";
 import { useAllBookings } from "@/hooks/useSupabase";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -12,19 +14,34 @@ const COLORS = ["hsl(155 50% 20%)", "hsl(42 85% 52%)", "hsl(200 70% 50%)"];
 
 const AdminOverview = () => {
   const { data: bookings, isLoading: loadingBookings } = useAllBookings();
+  const { data: closureLogs = [], isLoading: loadingClosures } = useQuery({
+    queryKey: ['booking-closure-logs-count'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('booking_closure_logs')
+        .select('id');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const statusCounts = (bookings || []).reduce<Record<string, number>>((acc, b) => {
     acc[b.status] = (acc[b.status] || 0) + 1;
     return acc;
   }, { pending: 0, documents: 0, visa: 0, confirmed: 0, cancelled: 0 });
 
-  const totalRevenue = (bookings || []).reduce((sum, b) => sum + (b.amount_pkr || 0), 0);
+  const cancelledTotal = (statusCounts.cancelled || 0) + (closureLogs?.length || 0);
+  const statusCountsWithClosures = { ...statusCounts, cancelled: cancelledTotal };
+
+  const totalRevenue = (bookings || [])
+    .filter((b) => b.status !== 'cancelled')
+    .reduce((sum, b) => sum + (b.amount_pkr || 0), 0);
 
   const stats = [
     { label: "Total Bookings", value: String(bookings?.length || 0), icon: Users, color: "text-primary" },
-    { label: "Pending", value: String(statusCounts.pending || 0), icon: Clock, color: "text-amber-600" },
+    { label: "Pending", value: String(statusCountsWithClosures.pending || 0), icon: Clock, color: "text-amber-600" },
     { label: "Revenue", value: `PKR ${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-light" },
-    { label: "Confirmed", value: String(statusCounts.confirmed || 0), icon: CheckCircle, color: "text-green-600" },
+    { label: "Confirmed", value: String(statusCountsWithClosures.confirmed || 0), icon: CheckCircle, color: "text-green-600" },
   ];
 
   const monthlyMap = new Map<string, { month: string; bookings: number; revenue: number }>();
@@ -34,7 +51,7 @@ const AdminOverview = () => {
     if (!monthlyMap.has(month)) monthlyMap.set(month, { month, bookings: 0, revenue: 0 });
     const row = monthlyMap.get(month)!;
     row.bookings += 1;
-    row.revenue += b.amount_pkr || 0;
+    row.revenue += b.status === 'cancelled' ? 0 : (b.amount_pkr || 0);
   });
   const monthlyBookingsData = Array.from(monthlyMap.values());
 
@@ -44,7 +61,7 @@ const AdminOverview = () => {
     { name: "Visa", value: (bookings || []).filter((b) => b.package_type === "visa").length },
   ];
 
-  const isLoading = loadingBookings;
+  const isLoading = loadingBookings || loadingClosures;
 
   return (
     <AdminLayout>
@@ -122,7 +139,7 @@ const AdminOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(statusCounts).map(([status, count]) => (
+              {Object.entries(statusCountsWithClosures).map(([status, count]) => (
                 <div key={status} className="text-center p-4 rounded-lg bg-muted">
                   <p className="text-3xl font-bold font-display text-foreground">{count}</p>
                   <p className="text-sm text-muted-foreground capitalize mt-1">{status}</p>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/authContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,17 @@ export function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [searchParams]);
 
   const resolveRoleAndRedirect = async () => {
+    const redirectTarget = searchParams.get('redirect');
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -31,6 +40,11 @@ export function SignIn() {
       .select('role')
       .eq('id', user.id)
       .maybeSingle();
+
+    if (redirectTarget && profile?.role !== 'admin') {
+      navigate(redirectTarget, { replace: true });
+      return;
+    }
 
     navigate(profile?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
   };
