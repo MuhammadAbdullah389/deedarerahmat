@@ -134,45 +134,71 @@ const AdminHotels = () => {
 
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Hotel Name</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Distance</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading
-                  ? Array.from({ length: 6 }).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
-                      </TableRow>
-                    ))
-                  : (hotels || []).map((hotel) => (
-                  <TableRow key={hotel.id}>
-                    <TableCell className="font-medium">{hotel.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={hotel.city === 'Makkah' ? 'default' : 'secondary'}>
-                        {hotel.city}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{hotel.distance_meters}m from Haram</TableCell>
-                    <TableCell>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Hotel Name</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>Distance</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                        </TableRow>
+                      ))
+                    : (hotels || []).map((hotel) => (
+                    <TableRow key={hotel.id}>
+                      <TableCell className="font-medium">{hotel.name}</TableCell>
+                      <TableCell>
+                        <Badge variant={hotel.city === 'Makkah' ? 'default' : 'secondary'}>
+                          {hotel.city}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{hotel.distance_meters}m from Haram</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="icon" variant="ghost" onClick={() => handleEditHotel(hotel)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDeleteHotel(hotel.id)} disabled={isDeleting}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="md:hidden p-4 space-y-3">
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                : (hotels || []).map((hotel) => (
+                    <div key={hotel.id} className="rounded-lg border p-4 bg-card space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-sm">{hotel.name}</p>
+                          <p className="text-xs text-muted-foreground">{hotel.distance_meters}m from Haram</p>
+                        </div>
+                        <Badge variant={hotel.city === 'Makkah' ? 'default' : 'secondary'}>{hotel.city}</Badge>
+                      </div>
                       <div className="flex gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => handleEditHotel(hotel)}>
-                          <Edit className="h-4 w-4" />
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleEditHotel(hotel)}>
+                          <Edit className="h-4 w-4 mr-1" /> Edit
                         </Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDeleteHotel(hotel.id)} disabled={isDeleting}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleDeleteHotel(hotel.id)} disabled={isDeleting}>
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  ))}
+            </div>
           </CardContent>
         </Card>
       </div>

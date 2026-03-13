@@ -62,11 +62,11 @@ const UserTestimonials = () => {
   return (
     <UserLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="font-display text-2xl font-bold text-foreground">My Testimonials</h1>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button variant="gold" className="gap-2"><Plus className="h-4 w-4" /> Write Testimonial</Button>
+              <Button variant="gold" className="gap-2 w-full sm:w-auto"><Plus className="h-4 w-4" /> Write Testimonial</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -109,7 +109,7 @@ const UserTestimonials = () => {
             : (myTestimonials || []).map((t) => (
             <Card key={t.id}>
               <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="space-y-2">
                     <div className="flex gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -119,7 +119,7 @@ const UserTestimonials = () => {
                     <p className="text-foreground">{t.text}</p>
                     <p className="text-xs text-muted-foreground">{t.location || 'Pakistan'} • {new Date(t.created_at).toLocaleDateString()}</p>
                   </div>
-                  <Badge className={statusColors[t.status]}>{t.status}</Badge>
+                  <Badge className={`${statusColors[t.status]} w-fit`}>{t.status}</Badge>
                 </div>
               </CardContent>
             </Card>

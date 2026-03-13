@@ -119,7 +119,7 @@ const UserOverview = () => {
           <CardContent>
             <div className="space-y-3">
               {(recentActivity.length ? recentActivity : [{ date: "-", text: "No activity yet." }]).map((a, i) => (
-                <div key={i} className="flex gap-3 items-start">
+                <div key={i} className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start">
                   <Badge variant="secondary" className="text-xs shrink-0 mt-0.5">{a.date}</Badge>
                   <p className="text-sm text-foreground">{a.text}</p>
                 </div>

@@ -284,50 +284,86 @@ const AdminPackages = () => {
   };
 
   const renderTable = (packages: PackageType[] | undefined, isLoading: boolean) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Duration</TableHead>
-          <TableHead>Double</TableHead>
-          <TableHead>Triple</TableHead>
-          <TableHead className="hidden md:table-cell">Quad</TableHead>
-          <TableHead className="hidden md:table-cell">Quint</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading
-          ? Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i}>
-                <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+    <>
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Double</TableHead>
+              <TableHead>Triple</TableHead>
+              <TableHead className="hidden md:table-cell">Quad</TableHead>
+              <TableHead className="hidden md:table-cell">Quint</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                  </TableRow>
+                ))
+              : (packages || []).map((pkg) => (
+              <TableRow key={pkg.id}>
+                <TableCell className="font-medium">
+                  {pkg.name}
+                  {pkg.featured && <Badge className="ml-2 bg-accent text-accent-foreground">Featured</Badge>}
+                </TableCell>
+                <TableCell>{pkg.duration}</TableCell>
+                <TableCell>{formatPrice(pkg.prices.double)}</TableCell>
+                <TableCell>{formatPrice(pkg.prices.triple)}</TableCell>
+                <TableCell className="hidden md:table-cell">{formatPrice(pkg.prices.quad)}</TableCell>
+                <TableCell className="hidden md:table-cell">{formatPrice(pkg.prices.quint)}</TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={() => handleToggleFeatured(pkg)} disabled={isUpdating}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDeletePackage(pkg.id)} disabled={isDeleting}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
-            ))
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="md:hidden p-4 space-y-3">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)
           : (packages || []).map((pkg) => (
-          <TableRow key={pkg.id}>
-            <TableCell className="font-medium">
-              {pkg.name}
-              {pkg.featured && <Badge className="ml-2 bg-accent text-accent-foreground">Featured</Badge>}
-            </TableCell>
-            <TableCell>{pkg.duration}</TableCell>
-            <TableCell>{formatPrice(pkg.prices.double)}</TableCell>
-            <TableCell>{formatPrice(pkg.prices.triple)}</TableCell>
-            <TableCell className="hidden md:table-cell">{formatPrice(pkg.prices.quad)}</TableCell>
-            <TableCell className="hidden md:table-cell">{formatPrice(pkg.prices.quint)}</TableCell>
-            <TableCell>
-              <div className="flex gap-2">
-                <Button size="icon" variant="ghost" onClick={() => handleToggleFeatured(pkg)} disabled={isUpdating}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDeletePackage(pkg.id)} disabled={isDeleting}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div key={pkg.id} className="rounded-lg border p-4 bg-card space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-sm">{pkg.name}</p>
+                    <p className="text-xs text-muted-foreground">{pkg.duration}</p>
+                  </div>
+                  {pkg.featured && <Badge className="bg-accent text-accent-foreground">Featured</Badge>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <p><span className="text-muted-foreground">Double:</span> {formatPrice(pkg.prices.double)}</p>
+                  <p><span className="text-muted-foreground">Triple:</span> {formatPrice(pkg.prices.triple)}</p>
+                  <p><span className="text-muted-foreground">Quad:</span> {formatPrice(pkg.prices.quad)}</p>
+                  <p><span className="text-muted-foreground">Quint:</span> {formatPrice(pkg.prices.quint)}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handleToggleFeatured(pkg)} disabled={isUpdating}>
+                    <Edit className="h-4 w-4 mr-1" /> Feature
+                  </Button>
+                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleDeletePackage(pkg.id)} disabled={isDeleting}>
+                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                  </Button>
+                </div>
               </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+            ))}
+      </div>
+    </>
   );
 
   return (

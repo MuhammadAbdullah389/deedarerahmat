@@ -65,7 +65,7 @@ const UserBookings = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                   <div><span className="text-muted-foreground">ID:</span> <span className="font-mono">{b.booking_code}</span></div>
                   <div><span className="text-muted-foreground">Type:</span> <span className="capitalize">{b.package_type}</span></div>
                   <div><span className="text-muted-foreground">Sharing:</span> {b.sharing_type}</div>
@@ -75,7 +75,7 @@ const UserBookings = () => {
                 {/* Progress Tracker */}
                 <div className="space-y-2">
                   <Progress value={statusSteps.includes(b.status as typeof statusSteps[number]) ? getProgress(b.status as typeof statusSteps[number]) : 0} className="h-2" />
-                  <div className="flex justify-between text-xs text-muted-foreground">
+                  <div className="flex flex-wrap gap-2 justify-between text-xs text-muted-foreground">
                     {statusSteps.map((step) => (
                       <span key={step} className={statusSteps.includes(b.status as typeof statusSteps[number]) && statusSteps.indexOf(step) <= statusSteps.indexOf(b.status as typeof statusSteps[number]) ? "text-primary font-medium" : ""}>
                         {stepLabels[step]}
@@ -88,7 +88,7 @@ const UserBookings = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                     onClick={() => navigate(`/portal/upload-documents?booking_id=${b.id}`)}
                   >
                     <FolderOpen className="h-4 w-4" />

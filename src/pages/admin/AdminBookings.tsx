@@ -668,51 +668,104 @@ const AdminBookings = () => {
             <h2 className="text-lg font-semibold text-foreground">Active Applications</h2>
           </div>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead className="hidden md:table-cell">Package</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Amount</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="hidden md:table-cell">Package</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Amount</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : activeBookings.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div>
+                          <p>{b.package_name_snapshot}</p>
+                          {b.package_type === 'visa' && (
+                            <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-2 items-start">
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
+                            <Eye className="h-4 w-4" /> View More
+                          </Button>
+
+                          {b.status === 'documents' ? (
+                            <span className="text-xs text-muted-foreground">Waiting for docs approval</span>
+                          ) : statusNext[b.status] ? (
+                            <Button size="sm" variant="outline" onClick={() => advanceStatus(b.id)} disabled={isPending}>
+                              → {statusNext[b.status]}
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Done</span>
+                          )}
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => openRejectCloseDialog(b)}
+                            disabled={isClosingBooking}
+                          >
+                            Reject & Close
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  ))
-                ) : activeBookings.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
-                        <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="md:hidden p-4 space-y-3">
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-44 w-full" />)
+                : activeBookings.map((b) => (
+                    <div key={b.id} className="rounded-lg border p-4 bg-card space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">{b.booking_code}</p>
+                          <p className="font-semibold">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                        </div>
+                        <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div>
+
+                      <div className="text-sm">
                         <p>{b.package_name_snapshot}</p>
                         {b.package_type === 'visa' && (
                           <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
                         )}
+                        <p className="text-xs text-muted-foreground mt-1">Amount: {formatPrice(b.amount_pkr)}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-2 items-start">
+
+                      <div className="grid grid-cols-1 gap-2">
                         <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
                           <Eye className="h-4 w-4" /> View More
                         </Button>
-
                         {b.status === 'documents' ? (
                           <span className="text-xs text-muted-foreground">Waiting for docs approval</span>
                         ) : statusNext[b.status] ? (
@@ -722,21 +775,13 @@ const AdminBookings = () => {
                         ) : (
                           <span className="text-xs text-muted-foreground">Done</span>
                         )}
-
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => openRejectCloseDialog(b)}
-                          disabled={isClosingBooking}
-                        >
+                        <Button size="sm" variant="destructive" onClick={() => openRejectCloseDialog(b)} disabled={isClosingBooking}>
                           Reject & Close
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  ))}
+            </div>
 
             {!isLoading && activeBookings.length === 0 && (
               <div className="px-6 py-8 text-center text-sm text-muted-foreground">
@@ -752,54 +797,78 @@ const AdminBookings = () => {
             <p className="text-xs text-muted-foreground mt-1">Applications that have completed all workflow stages.</p>
           </div>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead className="hidden md:table-cell">Package</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Amount</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="hidden md:table-cell">Package</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Amount</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : completedBookings.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div>
+                          <p>{b.package_name_snapshot}</p>
+                          {b.package_type === 'visa' && (
+                            <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${statusColors.confirmed} border capitalize`}>completed</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
+                          <Eye className="h-4 w-4" /> View More
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  ))
-                ) : completedBookings.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
-                        <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="md:hidden p-4 space-y-3">
+              {isLoading
+                ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)
+                : completedBookings.map((b) => (
+                    <div key={b.id} className="rounded-lg border p-4 bg-card space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">{b.booking_code}</p>
+                          <p className="font-semibold">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                        </div>
+                        <Badge className={`${statusColors.confirmed} border capitalize`}>completed</Badge>
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div>
-                        <p>{b.package_name_snapshot}</p>
-                        {b.package_type === 'visa' && (
-                          <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${statusColors.confirmed} border capitalize`}>completed</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
+                      <p className="text-sm">{b.package_name_snapshot}</p>
+                      <p className="text-xs text-muted-foreground">Amount: {formatPrice(b.amount_pkr)}</p>
+                      <Button size="sm" variant="outline" className="w-full gap-1" onClick={() => openBookingDetails(b)}>
                         <Eye className="h-4 w-4" /> View More
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  ))}
+            </div>
 
             {!isLoading && completedBookings.length === 0 && (
               <div className="px-6 py-8 text-center text-sm text-muted-foreground">
@@ -815,92 +884,138 @@ const AdminBookings = () => {
             <p className="text-xs text-muted-foreground mt-1">These applications are closed and have no active actions.</p>
           </div>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead className="hidden md:table-cell">Package</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Amount</TableHead>
-                  <TableHead className="hidden md:table-cell">Reason</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading || isLoadingClosureLogs ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <>
-                    {rejectedHistoryBookings.map((b) => (
-                      <TableRow key={b.id}>
-                        <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
-                            <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div>
-                            <p>{b.package_name_snapshot}</p>
-                            {b.package_type === 'visa' && (
-                              <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
-                        <TableCell className="hidden md:table-cell max-w-[280px] truncate" title={b.admin_notes || ''}>
-                          {b.admin_notes || '—'}
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
-                            <Eye className="h-4 w-4" /> View More
-                          </Button>
-                        </TableCell>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="hidden md:table-cell">Package</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Amount</TableHead>
+                    <TableHead className="hidden md:table-cell">Reason</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading || isLoadingClosureLogs ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
                       </TableRow>
-                    ))}
+                    ))
+                  ) : (
+                    <>
+                      {rejectedHistoryBookings.map((b) => (
+                        <TableRow key={b.id}>
+                          <TableCell className="font-mono text-xs">{b.booking_code}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                              <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div>
+                              <p>{b.package_name_snapshot}</p>
+                              {b.package_type === 'visa' && (
+                                <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType((b.form_data as any)?.visaType)}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{formatPrice(b.amount_pkr)}</TableCell>
+                          <TableCell className="hidden md:table-cell max-w-[280px] truncate" title={b.admin_notes || ''}>
+                            {b.admin_notes || '—'}
+                          </TableCell>
+                          <TableCell>
+                            <Button size="sm" variant="outline" className="gap-1" onClick={() => openBookingDetails(b)}>
+                              <Eye className="h-4 w-4" /> View More
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
 
-                    {filteredClosureLogs.map((log) => (
-                      <TableRow key={`log-${log.id}`}>
-                        <TableCell className="font-mono text-xs">{log.booking_code}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{log.metadata?.form_data?.fullName || log.metadata?.form_data?.name || log.applicant_email || 'N/A'}</p>
-                            <p className="text-xs text-muted-foreground">{log.applicant_phone || '-'}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div>
-                            <p>{log.package_name_snapshot}</p>
-                            {log.package_type === 'visa' && (
-                              <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType(log.metadata?.form_data?.visaType)}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${statusColors.cancelled} border capitalize`}>cancelled</Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{formatPrice(log.metadata?.amount_pkr ?? null)}</TableCell>
-                        <TableCell className="hidden md:table-cell max-w-[280px] truncate" title={log.reason || ''}>
-                          {log.reason || '—'}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-muted-foreground">Archived</span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                )}
-              </TableBody>
-            </Table>
+                      {filteredClosureLogs.map((log) => (
+                        <TableRow key={`log-${log.id}`}>
+                          <TableCell className="font-mono text-xs">{log.booking_code}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{log.metadata?.form_data?.fullName || log.metadata?.form_data?.name || log.applicant_email || 'N/A'}</p>
+                              <p className="text-xs text-muted-foreground">{log.applicant_phone || '-'}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div>
+                              <p>{log.package_name_snapshot}</p>
+                              {log.package_type === 'visa' && (
+                                <p className="text-xs text-muted-foreground">Visa Type: {formatVisaType(log.metadata?.form_data?.visaType)}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${statusColors.cancelled} border capitalize`}>cancelled</Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{formatPrice(log.metadata?.amount_pkr ?? null)}</TableCell>
+                          <TableCell className="hidden md:table-cell max-w-[280px] truncate" title={log.reason || ''}>
+                            {log.reason || '—'}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-muted-foreground">Archived</span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="md:hidden p-4 space-y-3">
+              {isLoading || isLoadingClosureLogs ? (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)
+              ) : (
+                <>
+                  {rejectedHistoryBookings.map((b) => (
+                    <div key={b.id} className="rounded-lg border p-4 bg-card space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">{b.booking_code}</p>
+                          <p className="font-semibold">{(b.form_data as any)?.fullName || (b.form_data as any)?.name || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{(b.form_data as any)?.phone || '-'}</p>
+                        </div>
+                        <Badge className={`${statusColors[b.status]} border capitalize`}>{b.status}</Badge>
+                      </div>
+                      <p className="text-sm">{b.package_name_snapshot}</p>
+                      <p className="text-xs text-muted-foreground">Amount: {formatPrice(b.amount_pkr)}</p>
+                      <p className="text-xs text-muted-foreground">Reason: {b.admin_notes || '—'}</p>
+                      <Button size="sm" variant="outline" className="w-full gap-1" onClick={() => openBookingDetails(b)}>
+                        <Eye className="h-4 w-4" /> View More
+                      </Button>
+                    </div>
+                  ))}
+
+                  {filteredClosureLogs.map((log) => (
+                    <div key={`mobile-log-${log.id}`} className="rounded-lg border p-4 bg-card space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">{log.booking_code}</p>
+                          <p className="font-semibold">{log.metadata?.form_data?.fullName || log.metadata?.form_data?.name || log.applicant_email || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{log.applicant_phone || '-'}</p>
+                        </div>
+                        <Badge className={`${statusColors.cancelled} border capitalize`}>cancelled</Badge>
+                      </div>
+                      <p className="text-sm">{log.package_name_snapshot}</p>
+                      <p className="text-xs text-muted-foreground">Amount: {formatPrice(log.metadata?.amount_pkr ?? null)}</p>
+                      <p className="text-xs text-muted-foreground">Reason: {log.reason || '—'}</p>
+                      <span className="text-xs text-muted-foreground">Archived</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
 
             {!isLoading && !isLoadingClosureLogs && rejectedHistoryBookings.length === 0 && filteredClosureLogs.length === 0 && (
               <div className="px-6 py-8 text-center text-sm text-muted-foreground">
