@@ -95,13 +95,13 @@ const AdminChat = () => {
   }, [conversations, activeConversationId]);
 
   useEffect(() => {
-    if (!activeConversationId || !hasUnreadUserMessages) return;
+    if (!activeConversationId || !hasUnreadUserMessages || markRead.isPending) return;
 
     markRead.mutate({
       conversationId: activeConversationId,
       readerRole: "admin",
     });
-  }, [activeConversationId, hasUnreadUserMessages, markRead]);
+  }, [activeConversationId, hasUnreadUserMessages, markRead, markRead.isPending]);
 
   useEffect(() => {
     const channel = supabase
@@ -119,7 +119,6 @@ const AdminChat = () => {
         () => {
           if (activeConversationId) {
             queryClient.invalidateQueries({ queryKey: ["chat-messages", activeConversationId] });
-            queryClient.refetchQueries({ queryKey: ["chat-messages", activeConversationId], type: "active" });
           }
           queryClient.invalidateQueries({ queryKey: ["admin-chat-conversations"] });
         },

@@ -79,13 +79,13 @@ const UserChat = () => {
   }, [user?.id, conversationLoading, conversation, conversationError, ensureConversation]);
 
   useEffect(() => {
-    if (!conversationId || !hasUnreadAdminMessages) return;
+    if (!conversationId || !hasUnreadAdminMessages || markRead.isPending) return;
 
     markRead.mutate({
       conversationId,
       readerRole: "user",
     });
-  }, [conversationId, hasUnreadAdminMessages, markRead]);
+  }, [conversationId, hasUnreadAdminMessages, markRead, markRead.isPending]);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -102,7 +102,6 @@ const UserChat = () => {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["chat-messages", conversationId] });
-          queryClient.refetchQueries({ queryKey: ["chat-messages", conversationId], type: "active" });
           queryClient.invalidateQueries({ queryKey: ["admin-chat-conversations"] });
         },
       )

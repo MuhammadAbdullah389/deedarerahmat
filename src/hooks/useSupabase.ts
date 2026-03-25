@@ -858,8 +858,8 @@ export function useChatMessages(conversationId: string) {
     },
     enabled: !!conversationId,
     retry: false,
-    refetchInterval: conversationId ? 2000 : false,
-    refetchIntervalInBackground: true,
+    refetchInterval: conversationId ? 5000 : false,
+    refetchIntervalInBackground: false,
   });
 }
 
