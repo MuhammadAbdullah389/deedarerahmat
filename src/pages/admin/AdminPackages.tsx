@@ -29,6 +29,7 @@ const AdminPackages = () => {
     childWithoutBed: "",
     infant: "",
     includedText: "",
+    servicesText: "",
     double: "",
     triple: "",
     quad: "",
@@ -70,6 +71,7 @@ const AdminPackages = () => {
       childWithoutBed: "",
       infant: "",
       includedText: "",
+      servicesText: "",
       double: "",
       triple: "",
       quad: "",
@@ -113,6 +115,16 @@ const AdminPackages = () => {
       return;
     }
 
+    if (!form.makkahHotelId || !form.madinahHotelId) {
+      toast.error("Please select both hotels (Makkah/Aziziya and Madinah)");
+      return;
+    }
+
+    if (linesToArray(form.servicesText).length === 0) {
+      toast.error("Please add at least one service before creating the package");
+      return;
+    }
+
     createPackage(
       {
         name: form.name,
@@ -151,6 +163,7 @@ const AdminPackages = () => {
         ],
         requirements: linesToArray(form.requirementsText),
         notes: linesToArray(form.notesText),
+        services: linesToArray(form.servicesText),
         overseas_discount: form.type === "hajj" ? form.overseasDiscount || null : null,
         prices: {
           double: form.double ? Number(form.double) : undefined,
@@ -166,7 +179,7 @@ const AdminPackages = () => {
           setAddOpen(false);
           resetForm();
         },
-        onError: () => toast.error("Failed to create package"),
+        onError: (error: any) => toast.error(error?.message || "Failed to create package"),
       }
     );
   };
@@ -201,6 +214,12 @@ const AdminPackages = () => {
       childWithoutBed: "",
       infant: "",
       includedText: "",
+      servicesText: [
+        "Accommodation on sharing basis",
+        "3 time buffet meals",
+        "Guided Ziarat in Madinah",
+        "Ahram included",
+      ].join("\n"),
       double: "1934000",
       triple: "1874000",
       quad: "1839000",
@@ -253,6 +272,13 @@ const AdminPackages = () => {
       childWithoutBed: "199000",
       infant: "79000",
       includedText: "Visa, Ticket, Hotel, Transport, Ziarat",
+      servicesText: [
+        "Saudi visa processing",
+        "Return airfare",
+        "Hotel accommodation",
+        "Airport transfers",
+        "Ziarat tours",
+      ].join("\n"),
       double: "384000",
       triple: "332000",
       quad: "309000",
@@ -474,6 +500,15 @@ const AdminPackages = () => {
                     }
                     value={form.itineraryText}
                     onChange={(e) => setForm((p) => ({ ...p, itineraryText: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Services (one per line)</Label>
+                  <Textarea
+                    rows={4}
+                    placeholder={"Visa\nHotel\nTransport\nZiarat"}
+                    value={form.servicesText}
+                    onChange={(e) => setForm((p) => ({ ...p, servicesText: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">

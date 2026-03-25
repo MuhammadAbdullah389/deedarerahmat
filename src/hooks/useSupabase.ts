@@ -162,6 +162,7 @@ export interface PackageUpsertInput {
   return_flight_info?: any;
   itinerary?: any[];
   package_details?: string[];
+  services?: string[];
   requirements?: string[];
   notes?: string[];
   overseas_discount?: string | null;
@@ -552,6 +553,14 @@ export function useCreatePackage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: PackageUpsertInput) => {
+      if (!payload.hotel_ids || payload.hotel_ids.length < 2) {
+        throw new Error('Please select both hotels (Makkah/Aziziya and Madinah)');
+      }
+
+      if (!payload.services || payload.services.length === 0) {
+        throw new Error('Please add at least one service before creating the package');
+      }
+
       const slug = payload.name
         .toLowerCase()
         .trim()
@@ -609,6 +618,19 @@ export function useCreatePackage() {
       if (hotelRows.length) {
         const { error: hotelsError } = await supabase.from('package_hotels').insert(hotelRows);
         if (hotelsError) throw hotelsError;
+      }
+
+      const serviceRows = (payload.services || [])
+        .filter((service) => service && service.trim().length > 0)
+        .map((service, i) => ({
+          package_id: pkg.id,
+          service_text: service.trim(),
+          sort_order: i,
+        }));
+
+      if (serviceRows.length) {
+        const { error: servicesError } = await supabase.from('package_services').insert(serviceRows);
+        if (servicesError) throw servicesError;
       }
 
       return pkg.id as string;
