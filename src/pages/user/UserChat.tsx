@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Send } from "lucide-react";
+import { Check, CheckCheck, MessageCircle, Send } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { supabase } from "@/lib/supabase";
 import {
@@ -26,9 +26,9 @@ const formatTime = (isoDate: string) =>
   new Date(isoDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 const getOutgoingStatus = (message: { delivered_at: string | null; seen_at: string | null; is_read: boolean }) => {
-  if (message.seen_at || message.is_read) return "Seen";
-  if (message.delivered_at) return "Delivered";
-  return "";
+  if (message.seen_at || message.is_read) return "seen";
+  if (message.delivered_at) return "delivered";
+  return "sent";
 };
 
 const getInitials = (name?: string | null) => {
@@ -236,7 +236,7 @@ const UserChat = () => {
                     ) : (
                       messages.map((message) => {
                         const own = message.sender_role === "user";
-                        const status = own ? getOutgoingStatus(message) : "";
+                        const status = own ? getOutgoingStatus(message) : null;
 
                         return (
                           <div key={message.id} className={`flex gap-2 ${own ? "flex-row-reverse" : "flex-row"}`}>
@@ -256,9 +256,11 @@ const UserChat = () => {
                               >
                                 <p className="whitespace-pre-wrap leading-relaxed">{message.message_text}</p>
                               </div>
-                              <p className="text-xs text-muted-foreground px-2">
+                              <p className="text-xs text-muted-foreground px-2 inline-flex items-center gap-1">
                                 {formatTime(message.created_at)}
-                                {status ? ` • ${status}` : ""}
+                                {status === "sent" && <Check className="h-3 w-3" />}
+                                {status === "delivered" && <CheckCheck className="h-3 w-3" />}
+                                {status === "seen" && <CheckCheck className="h-3 w-3 text-sky-500 dark:text-sky-400" />}
                               </p>
                             </div>
                           </div>
