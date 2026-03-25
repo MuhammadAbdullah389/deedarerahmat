@@ -15,7 +15,8 @@ import { supabase } from "@/lib/supabase";
 import {
   useChatMessages,
   useEnsureUserChatConversation,
-  useMarkConversationMessagesRead,
+  useMarkConversationMessagesDelivered,
+  useMarkConversationMessagesSeen,
   useSendChatMessage,
   useUserChatConversation,
 } from "@/hooks/useSupabase";
@@ -23,6 +24,12 @@ import { toast } from "sonner";
 
 const formatTime = (isoDate: string) =>
   new Date(isoDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+const getOutgoingStatus = (message: { delivered_at: string | null; seen_at: string | null; is_read: boolean }) => {
+  if (message.seen_at || message.is_read) return "Seen";
+  if (message.delivered_at) return "Delivered";
+  return "";
+};
 
 const getInitials = (name?: string | null) => {
   if (!name) return "U";
@@ -52,13 +59,19 @@ const UserChat = () => {
   } = useUserChatConversation(user?.id || "");
   const ensureConversation = useEnsureUserChatConversation();
   const sendMessage = useSendChatMessage();
-  const markRead = useMarkConversationMessagesRead();
+  const markDelivered = useMarkConversationMessagesDelivered();
+  const markSeen = useMarkConversationMessagesSeen();
 
   const conversationId = conversation?.id || "";
   const { data: messages = [], isLoading: messagesLoading } = useChatMessages(conversationId);
 
-  const hasUnreadAdminMessages = useMemo(
-    () => messages.some((message) => message.sender_role === "admin" && !message.is_read),
+  const hasUndeliveredAdminMessages = useMemo(
+    () => messages.some((message) => message.sender_role === "admin" && !message.is_read && !message.delivered_at),
+    [messages],
+  );
+
+  const hasUnseenAdminMessages = useMemo(
+    () => messages.some((message) => message.sender_role === "admin" && !message.is_read && !message.seen_at),
     [messages],
   );
 
@@ -79,13 +92,22 @@ const UserChat = () => {
   }, [user?.id, conversationLoading, conversation, conversationError, ensureConversation]);
 
   useEffect(() => {
-    if (!conversationId || !hasUnreadAdminMessages || markRead.isPending) return;
+    if (!conversationId || !hasUndeliveredAdminMessages || markDelivered.isPending) return;
 
-    markRead.mutate({
+    markDelivered.mutate({
+      conversationId,
+      receiverRole: "user",
+    });
+  }, [conversationId, hasUndeliveredAdminMessages, markDelivered, markDelivered.isPending]);
+
+  useEffect(() => {
+    if (!conversationId || hasUndeliveredAdminMessages || !hasUnseenAdminMessages || markSeen.isPending) return;
+
+    markSeen.mutate({
       conversationId,
       readerRole: "user",
     });
-  }, [conversationId, hasUnreadAdminMessages, markRead, markRead.isPending]);
+  }, [conversationId, hasUndeliveredAdminMessages, hasUnseenAdminMessages, markSeen, markSeen.isPending]);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -214,6 +236,7 @@ const UserChat = () => {
                     ) : (
                       messages.map((message) => {
                         const own = message.sender_role === "user";
+                        const status = own ? getOutgoingStatus(message) : "";
 
                         return (
                           <div key={message.id} className={`flex gap-2 ${own ? "flex-row-reverse" : "flex-row"}`}>
@@ -233,7 +256,10 @@ const UserChat = () => {
                               >
                                 <p className="whitespace-pre-wrap leading-relaxed">{message.message_text}</p>
                               </div>
-                              <p className="text-xs text-muted-foreground px-2">{formatTime(message.created_at)}</p>
+                              <p className="text-xs text-muted-foreground px-2">
+                                {formatTime(message.created_at)}
+                                {status ? ` • ${status}` : ""}
+                              </p>
                             </div>
                           </div>
                         );

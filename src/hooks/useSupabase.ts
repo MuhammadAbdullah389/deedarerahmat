@@ -144,6 +144,8 @@ export interface ChatMessage {
   sender_role: 'user' | 'admin';
   message_text: string;
   is_read: boolean;
+  delivered_at: string | null;
+  seen_at: string | null;
   created_at: string;
 }
 
@@ -902,7 +904,38 @@ export function useSendChatMessage() {
   });
 }
 
-export function useMarkConversationMessagesRead() {
+export function useMarkConversationMessagesDelivered() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      conversationId,
+      receiverRole,
+    }: {
+      conversationId: string;
+      receiverRole: 'user' | 'admin';
+    }) => {
+      const senderRoleToMark = receiverRole === 'admin' ? 'user' : 'admin';
+
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ delivered_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('sender_role', senderRoleToMark)
+        .is('delivered_at', null)
+        .eq('is_read', false);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', variables.conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-chat-conversations'] });
+    },
+  });
+}
+
+export function useMarkConversationMessagesSeen() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -917,7 +950,11 @@ export function useMarkConversationMessagesRead() {
 
       const { error } = await supabase
         .from('chat_messages')
-        .update({ is_read: true })
+        .update({
+          is_read: true,
+          seen_at: new Date().toISOString(),
+          delivered_at: new Date().toISOString(),
+        })
         .eq('conversation_id', conversationId)
         .eq('sender_role', senderRoleToMark)
         .eq('is_read', false);
