@@ -60,7 +60,7 @@ export function AdminSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
-            {!collapsed && "Alhabib Admin"}
+            {!collapsed && "Deedar-e-Rahamat Admin"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

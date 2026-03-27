@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Star } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 const Footer = () => {
   return (
@@ -13,9 +14,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <img src={logo} alt="Alhabib Travel" className="h-16 w-auto mb-4" />
+            <img src={logo} alt={SITE_CONTACT.agencyName} className="h-16 w-auto mb-4" />
             <p className="text-primary-foreground/60 text-sm leading-relaxed mb-4">
-              Your trusted partner for Hajj, Umrah, and visa services since 2010. Serving pilgrims from Narowal and across Pakistan with dedication and care.
+              Your trusted partner for Hajj, Umrah, and visa services since 2010. Proudly serving pilgrims from Rawalpindi and across Pakistan with dedication and care.
             </p>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -48,15 +49,18 @@ const Footer = () => {
           <div>
             <h3 className="text-accent font-display text-lg mb-5">Contact Us</h3>
             <div className="flex flex-col gap-3 text-sm text-primary-foreground/60">
-              <a href="tel:+923422356719" className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Phone className="w-4 h-4 text-accent/70" /> +92 342 2356719
+              <a href={`tel:${SITE_CONTACT.primaryPhoneDial}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Phone className="w-4 h-4 text-accent/70" /> {SITE_CONTACT.primaryPhoneDisplay}
               </a>
-              <a href="mailto:info@alhabibtravel.com" className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Mail className="w-4 h-4 text-accent/70" /> info@alhabibtravel.com
+              <a href={`tel:${SITE_CONTACT.secondaryPhoneDial}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Phone className="w-4 h-4 text-accent/70" /> {SITE_CONTACT.secondaryPhoneDisplay}
+              </a>
+              <a href={`mailto:${SITE_CONTACT.email}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Mail className="w-4 h-4 text-accent/70" /> {SITE_CONTACT.email}
               </a>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-accent/70 mt-0.5 shrink-0" />
-                <span>Main Bazaar, Narowal, Punjab, Pakistan</span>
+                <span>{SITE_CONTACT.officeAddressSingleLine}</span>
               </div>
             </div>
           </div>
@@ -78,8 +82,8 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-emerald-light/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-primary-foreground/40">
-          <p>© {new Date().getFullYear()} Alhabib Travel & Tours. All rights reserved.</p>
-          <p className="font-arabic text-sm text-accent/40">الحبيب ٹریولز اینڈ ٹورز</p>
+          <p>© {new Date().getFullYear()} {SITE_CONTACT.agencyName}. All rights reserved.</p>
+          <p className="font-arabic text-sm text-accent/40">دیدارِ رحمت ٹریولز اینڈ ٹورز</p>
         </div>
       </div>
     </footer>

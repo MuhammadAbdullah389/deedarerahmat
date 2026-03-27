@@ -2,11 +2,13 @@ import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import ScrollReveal from "@/components/animations/ScrollReveal";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 const contactItems = [
-  { icon: Phone, label: "Phone", value: "+92 342 2356719", href: "tel:+923422356719" },
-  { icon: Mail, label: "Email", value: "info@alhabibtravel.com", href: "mailto:info@alhabibtravel.com" },
-  { icon: MapPin, label: "Office Address", value: "Main Bazaar, Near Jama Masjid,\nNarowal, Punjab, Pakistan" },
+  { icon: Phone, label: "Phone (M. Owais Azhar)", value: SITE_CONTACT.primaryPhoneDisplay, href: `tel:${SITE_CONTACT.primaryPhoneDial}` },
+  { icon: Phone, label: "Phone (M. Farooq)", value: SITE_CONTACT.secondaryPhoneDisplay, href: `tel:${SITE_CONTACT.secondaryPhoneDial}` },
+  { icon: Mail, label: "Email", value: SITE_CONTACT.email, href: `mailto:${SITE_CONTACT.email}` },
+  { icon: MapPin, label: "Office Address", value: SITE_CONTACT.officeAddressMultiline },
   { icon: Clock, label: "Office Hours", value: "Mon–Sat: 9AM – 8PM\nSun: 10AM – 4PM" },
 ];
 
@@ -52,7 +54,7 @@ const ContactSection = () => {
                 </motion.div>
               ))}
 
-              <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer" className="block">
+              <a href={`https://wa.me/${SITE_CONTACT.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="gold" size="lg" className="w-full gap-2 mt-2 shadow-gold">
                   <Phone className="w-5 h-5" /> Chat on WhatsApp <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -63,14 +65,14 @@ const ContactSection = () => {
           <ScrollReveal delay={0.2}>
             <div className="rounded-2xl overflow-hidden shadow-lg h-[350px] md:h-full min-h-[350px] border border-accent/10">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27008.15730454969!2d74.86!3d32.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391f29e7bce0fba3%3A0xc0e7ad7b0d3b6285!2sNarowal%2C%20Punjab%2C%20Pakistan!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s"
+                src={SITE_CONTACT.mapEmbedUrl}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Alhabib Travel & Tours Location"
+                title={`${SITE_CONTACT.agencyName} Location`}
               />
             </div>
           </ScrollReveal>

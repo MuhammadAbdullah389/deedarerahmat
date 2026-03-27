@@ -8,6 +8,7 @@ import UmrahRegistrationForm from "@/components/forms/UmrahRegistrationForm";
 import { useAuth } from "@/lib/authContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 interface PackageModalProps {
   pkg: PackageType | null;
@@ -32,7 +33,7 @@ const PackageModal = ({ pkg, open, onClose, portalMode = false }: PackageModalPr
 
   const buildWhatsAppUrl = (priceText: string, hotelText: string) => {
     const message = `Assalam o Alaikum,\n\nI am interested in the following package:\n\nPackage Name: ${pkg?.name || ''}\nPrice: ${priceText}\nDuration: ${pkg?.duration || ''}\nHotel: ${hotelText}\n\nPlease share more details.`;
-    return `https://wa.me/923422356719?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/${SITE_CONTACT.whatsappNumber}?text=${encodeURIComponent(message)}`;
   };
 
   const handleClose = () => {
@@ -368,7 +369,7 @@ const PackageModal = ({ pkg, open, onClose, portalMode = false }: PackageModalPr
             <Button variant="whatsapp" className="flex-1 gap-2" onClick={() => setStep('sharing')}>
               <Phone className="w-4 h-4" /> Book via WhatsApp
             </Button>
-            <a href="tel:+923422356719" className="flex-1">
+            <a href={`tel:${SITE_CONTACT.primaryPhoneDial}`} className="flex-1">
               <Button variant="outline" className="w-full gap-2">
                 <Phone className="w-4 h-4" /> Call Now
               </Button>

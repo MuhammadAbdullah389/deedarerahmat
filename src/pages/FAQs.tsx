@@ -6,6 +6,7 @@ import ScrollReveal from "@/components/animations/ScrollReveal";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 const faqs = [
   {
@@ -85,7 +86,7 @@ const FAQs = () => {
             <div className="mt-14 text-center glass-card rounded-2xl p-8">
               <h3 className="font-display text-xl font-bold text-foreground mb-2">Still have questions?</h3>
               <p className="text-muted-foreground text-sm mb-5">Our team is always happy to help you with any queries.</p>
-              <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${SITE_CONTACT.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
                 <Button variant="gold" size="lg" className="gap-2 shadow-gold">
                   <Phone className="w-5 h-5" /> Chat on WhatsApp
                 </Button>

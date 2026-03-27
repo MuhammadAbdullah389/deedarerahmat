@@ -442,10 +442,10 @@ export const umrahPackages: PackageType[] = [
 ];
 
 export const testimonials = [
-  { id: '1', name: 'Muhammad Usman', location: 'Narowal', text: 'Alhamdulillah! The Hajj experience with Alhabib Travel was beyond my expectations. Everything was perfectly organized from visa to accommodation. Highly recommended!', rating: 5 },
+  { id: '1', name: 'Muhammad Usman', location: 'Rawalpindi', text: 'Alhamdulillah! The Hajj experience with Deedar-e-Rahamat Travel was beyond my expectations. Everything was perfectly organized from visa to accommodation. Highly recommended!', rating: 5 },
   { id: '2', name: 'Fatima Bibi', location: 'Sialkot', text: 'We performed Umrah with our family and the entire journey was smooth and hassle-free. The hotels were close to Haram and the food was excellent. JazakAllah!', rating: 5 },
   { id: '3', name: 'Ahmed Khan', location: 'Lahore', text: 'Professional service, great coordination, and helpful staff. Our Hajj group had an amazing experience. The guide was very knowledgeable and supportive throughout.', rating: 5 },
-  { id: '4', name: 'Ayesha Siddiqui', location: 'Narowal', text: 'Third time performing Umrah with Alhabib and every time has been wonderful. Their visa assistance service is the best in the area. Truly a trusted name!', rating: 5 },
+  { id: '4', name: 'Ayesha Siddiqui', location: 'Rawalpindi', text: 'Third time performing Umrah with Deedar-e-Rahamat and every time has been wonderful. Their visa assistance service is the best in the area. Truly a trusted name!', rating: 5 },
 ];
 
 export const formatPrice = (price?: number | null): string => {

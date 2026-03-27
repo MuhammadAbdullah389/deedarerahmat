@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.png";
 import { LoginModal } from "../LoginModal";
 import { useAuth } from "@/lib/authContext";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -49,10 +50,10 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16 md:h-20">
         <Link to="/" className="flex items-center gap-3 group">
-          <img src={logo} alt="Alhabib Travel & Tours" className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:scale-105" />
+          <img src={logo} alt={SITE_CONTACT.agencyName} className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:scale-105" />
           <div className="hidden sm:block">
-            <h1 className={`font-display text-lg font-bold leading-tight transition-colors duration-300 ${scrolled ? "text-foreground" : "text-primary-foreground"}`}>Alhabib</h1>
-            <p className={`text-[10px] tracking-[0.3em] uppercase transition-colors duration-300 ${scrolled ? "text-accent" : "text-gold-light"}`}>Travel & Tours</p>
+            <h1 className={`font-display text-lg font-bold leading-tight transition-colors duration-300 ${scrolled ? "text-foreground" : "text-primary-foreground"}`}>{SITE_CONTACT.agencyShortName}</h1>
+            <p className={`text-[10px] tracking-[0.3em] uppercase transition-colors duration-300 ${scrolled ? "text-accent" : "text-gold-light"}`}>{SITE_CONTACT.agencyTagline}</p>
           </div>
         </Link>
 
@@ -80,11 +81,6 @@ const Navbar = () => {
               )}
             </Link>
           ))}
-          <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
-            <Button variant="gold" size="sm" className="gap-2 shadow-gold">
-              <Phone className="w-4 h-4" /> WhatsApp
-            </Button>
-          </a>
           {user ? (
             <Button
               variant="outline"
@@ -148,11 +144,6 @@ const Navbar = () => {
                   </Link>
                 </motion.div>
               ))}
-              <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
-                <Button variant="gold" className="w-full gap-2 mt-3 shadow-gold">
-                  <Phone className="w-4 h-4" /> WhatsApp Us
-                </Button>
-              </a>
               {user ? (
                 <Button
                   variant="outline"

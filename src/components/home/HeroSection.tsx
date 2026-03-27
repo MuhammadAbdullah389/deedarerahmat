@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Phone, Star } from "lucide-react";
+import { SITE_CONTACT } from "@/lib/siteContact";
 import heroImage from "@/assets/hero-kaaba.jpg";
 import masjidNabawi from "@/assets/masjid-nabawi.jpg";
 import kaabaNight from "@/assets/kaaba-night.jpg";
@@ -102,7 +103,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-primary-foreground/80 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          Trusted Hajj & Umrah packages from Narowal. Experience a spiritually fulfilling pilgrimage with our expert guidance and premium services since 2010.
+          Trusted Hajj & Umrah packages from Rawalpindi. Experience a spiritually fulfilling pilgrimage with our expert guidance and premium services since 2010.
         </motion.p>
 
         <motion.div
@@ -121,7 +122,7 @@ const HeroSection = () => {
               View Umrah Packages
             </Button>
           </Link>
-          <a href="https://wa.me/923422356719" target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${SITE_CONTACT.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
             <Button variant="whatsapp" size="lg" className="text-base px-8 gap-2">
               <Phone className="w-5 h-5" /> WhatsApp Us
             </Button>

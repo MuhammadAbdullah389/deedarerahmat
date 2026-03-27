@@ -5,6 +5,7 @@ import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { Star, Shield, Users, Award, Heart, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import heroKaaba from "@/assets/hero-kaaba.jpg";
+import { SITE_CONTACT } from "@/lib/siteContact";
 
 const stats = [
   { value: "15+", label: "Years Experience" },
@@ -18,7 +19,7 @@ const values = [
   { icon: Heart, title: "Dedication & Care", desc: "We treat every pilgrim like family, providing personalized attention and round-the-clock support." },
   { icon: Award, title: "Premium Quality", desc: "Top-rated hotels near Haram, comfortable transport, and quality meals — no compromises." },
   { icon: Globe, title: "Expert Guidance", desc: "Our experienced scholars and guides ensure a spiritually enriching and hassle-free experience." },
-  { icon: Users, title: "Community Focused", desc: "Proudly serving pilgrims from Narowal and across Pakistan with deep community roots." },
+  { icon: Users, title: "Community Focused", desc: "Proudly serving pilgrims from Rawalpindi and across Pakistan with deep community roots." },
   { icon: Star, title: "Highly Rated", desc: "Consistently rated 5 stars by our pilgrims for exceptional service and organization." },
 ];
 
@@ -34,7 +35,7 @@ const AboutUs = () => {
         <div className="relative z-10 text-center pt-16">
           <ScrollReveal>
             <p className="text-gold-light tracking-[0.3em] uppercase text-sm mb-3">Our Story</p>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground">About Al-Habib</h1>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground">About {SITE_CONTACT.agencyShortName}</h1>
             <p className="text-primary-foreground/70 mt-4 max-w-xl mx-auto">
               Serving pilgrims with dedication, trust, and excellence since 2010.
             </p>
@@ -50,10 +51,10 @@ const AboutUs = () => {
               <h2 className="font-display text-3xl font-bold text-foreground mb-6">Our Journey Since 2010</h2>
               <div className="space-y-4 text-foreground/80 leading-relaxed">
                 <p>
-                  <strong className="text-foreground">Alhabib Travel & Tours</strong> was founded in 2010 with a simple mission — to make the sacred journey of Hajj and Umrah accessible, comfortable, and spiritually enriching for every Muslim in Pakistan.
+                  <strong className="text-foreground">{SITE_CONTACT.agencyName}</strong> was founded in 2010 with a simple mission — to make the sacred journey of Hajj and Umrah accessible, comfortable, and spiritually enriching for every Muslim in Pakistan.
                 </p>
                 <p>
-                  Based in <strong className="text-foreground">Narowal, Punjab</strong>, we have grown from a small local agency to one of the most trusted names in religious travel. Over the past 15 years, we have successfully guided over <strong className="text-accent">1,000+ pilgrims</strong> to the holy cities of Makkah and Madinah.
+                  Based in <strong className="text-foreground">Rawalpindi, Punjab</strong>, we have grown from a trusted local agency to one of the respected names in religious travel. Over the past 15 years, we have successfully guided over <strong className="text-accent">1,000+ pilgrims</strong> to the holy cities of Makkah and Madinah.
                 </p>
                 <p>
                   Our packages are carefully designed to provide the best hotels near Haram, comfortable transportation, delicious meals, and complete guided Ziarat — all at competitive prices. We also provide comprehensive visa assistance for Saudi Arabia, UAE, Turkey, Malaysia, and other countries.

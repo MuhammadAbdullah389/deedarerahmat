@@ -93,7 +93,7 @@ const UserTestimonials = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Your Experience</Label>
-                  <Textarea placeholder="Share your journey with Alhabib Travel..." rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+                  <Textarea placeholder="Share your journey with Deedar-e-Rahamat Travel..." rows={4} value={text} onChange={(e) => setText(e.target.value)} />
                 </div>
                 <Button type="submit" variant="gold" className="w-full" disabled={isPending}>Submit for Review</Button>
               </form>
