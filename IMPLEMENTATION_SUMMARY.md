@@ -1,7 +1,7 @@
 # Document Management System Implementation - Summary
 
 ## Overview
-A comprehensive document management system has been successfully implemented for the Alhabib Pilgrim Paths application, allowing users to apply for packages without an initial signup, with document upload and admin review capabilities.
+A comprehensive document management system has been successfully implemented for the Deedar-e-Rahamat Pilgrim Paths application, allowing users to apply for packages without an initial signup, with document upload and admin review capabilities.
 
 ## Files Created
 
